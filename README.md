@@ -1,109 +1,164 @@
-# New Nx Repository
+# tax-inspection
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+An [Nx](https://nx.dev) monorepo with two applications:
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+| Project         | Stack                              | Location             |
+| --------------- | ---------------------------------- | -------------------- |
+| `inspector-web` | Angular 22 (standalone, SCSS)      | `apps/inspector-web` |
+| `inspector-api` | Hono + `@hono/node-server` (Node)  | `apps/inspector-api` |
+| `shared`        | Framework-agnostic TypeScript lib  | `libs/shared`        |
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/docs/technologies/typescript/introduction?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## Shared library
 
-🚀 If you haven't connected to Nx Cloud yet, [complete your setup here](https://cloud.nx.app/get-started). Get faster builds with remote caching, distributed task execution, and self-healing CI. [See how your workspace can benefit](#nx-cloud).
+Code used by **both** apps lives in `libs/shared` and is imported through the
+`@tax-inspection/shared` alias (defined in `tsconfig.base.json`):
 
-## Generate a library
-
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+```ts
+import { formatCurrency, INSPECTION_STATUS_LABELS, type Inspection } from '@tax-inspection/shared';
 ```
 
-## Run tasks
-
-To build the library use:
-
-```sh
-npx nx run pkg1:build
-```
-
-To run any task with Nx use:
-
-```sh
-npx nx run <project-name>:<target>
-```
-
-These targets are either [inferred automatically](https://nx.dev/docs/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/docs/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Versioning and releasing
-
-To version and release the library use
+Structure:
 
 ```
-npx nx release
+libs/shared/src/lib/
+├── models/       # shared types & interfaces (Inspection, Taxpayer, ApiResponse, …)
+├── constants/    # shared constants (API_PREFIX, status labels, …)
+└── utils/        # shared helpers (formatCurrency, isDefined, nowIso, …)
 ```
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+Everything is re-exported from `libs/shared/src/index.ts`, so consumers only
+import from `@tax-inspection/shared`. No build step is needed — each app compiles
+the shared source directly.
 
-[Learn more about Nx release &raquo;](https://nx.dev/docs/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Prerequisites
 
-## Keep TypeScript project references up to date
+- Node.js (v22+)
+- npm
 
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
+> **Note:** This workspace ships a local `.npmrc` with `legacy-peer-deps=true`
+> to work around an npm 10.9 dependency-resolution bug in the Angular/Nx tree.
+> Keep it — installs will fail without it.
 
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
+## Install
 
-```sh
-npx nx sync
+```bash
+npm install
 ```
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
+## Develop
 
-```sh
-npx nx sync:check
+Run both apps together:
+
+```bash
+npm run dev
 ```
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+Or individually:
 
-## Nx Cloud
-
-Nx Cloud ensures a [fast and scalable CI](https://nx.dev/nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/docs/features/ci-features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/docs/features/ci-features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/docs/features/ci-features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/docs/features/ci-features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Set up CI (non-Github Actions CI)
-
-**Note:** This is only required if your CI provider is not GitHub Actions.
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+```bash
+npm run dev:web   # Angular dev server → http://localhost:4200
+npm run dev:api   # Hono server        → http://localhost:3000
 ```
 
-[Learn more about Nx on CI](https://nx.dev/docs/features/ci-features?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The web dev server proxies `/api/*` to the API
+(see `apps/inspector-web/proxy.conf.json`), so from the browser you can call
+`/api/health` and it reaches the Hono server.
 
-## Install Nx Console
+## Backend routes
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+| Method | Path                 | Response                          |
+| ------ | -------------------- | --------------------------------- |
+| GET    | `/`                  | Plain-text banner                 |
+| GET    | `/api/health`        | `{ status, service, timestamp }`  |
+| GET    | `/api/hello?name=`   | `{ message }`                     |
+| GET    | `/api/inspections`   | `Inspection[]` (shared model)     |
 
-[Install Nx Console &raquo;](https://nx.dev/docs/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Change the port with the `PORT` env var (defaults to `3000`).
 
-## 🔗 Learn More
+## UI components — spartan/ui
 
-- [Nx Documentation](https://nx.dev/docs)
-- [Crafting Your Workspace Tutorial](https://nx.dev/docs/getting-started/tutorials/crafting-your-workspace)
-- [Module Boundaries](https://nx.dev/docs/features/enforce-module-boundaries)
-- [Releasing Packages](https://nx.dev/docs/features/manage-releases)
-- [Nx Plugins](https://nx.dev/docs/concepts/nx-plugins)
-- [Nx Cloud](https://nx.dev/nx-cloud)
+`inspector-web` uses [spartan/ui](https://spartan.ng) (Tailwind CSS v4 + the
+`@spartan-ng/brain` primitives). The "helm" components are **copied into the repo**
+(you own them) as small Nx libraries under `libs/ui/*`, imported via the
+`@spartan-ng/helm/*` alias:
 
-## 💬 Community
+```ts
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+```
 
-Join the Nx community:
+Installed so far: `button`, `card`, `input`, `label` (+ shared `libs/ui/utils`).
+Add more with:
 
-- [Discord](https://go.nx.dev/community)
-- [X (Twitter)](https://twitter.com/nxdevtools)
-- [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [YouTube](https://www.youtube.com/@nxdevtools)
-- [Blog](https://nx.dev/blog)
+```bash
+npx nx g @spartan-ng/cli:ui <name>   # e.g. dialog, select, table
+```
+
+Tailwind is wired via `.postcssrc.json` (`@tailwindcss/postcss`) and
+`apps/inspector-web/src/styles.scss` (theme = slate, plus `@source` directives so
+Tailwind scans `libs/ui`). Config lives in `components.json`.
+
+## State management — NgRx Signals
+
+State uses the [NgRx SignalStore](https://ngrx.io/guide/signals) with the
+**entities** plugin (`@ngrx/signals/entities`) and `@ngrx/operators`.
+
+Each store is split into two files under `store/`:
+
+- `<entity>.events.ts` — event groups (UI events + API events) via `eventGroup`.
+- `<entity>.store.ts` — a `signalStore` with `withEntities<Inspection>()`,
+  computed selectors, `withReducer(on(...))` for event-driven state transitions,
+  and a `withHooks` effect that listens for UI events, calls the service, and
+  dispatches API events (`mapResponse` from `@ngrx/operators`).
+
+Components dispatch events (they don't call methods directly):
+
+```ts
+const dispatch = injectDispatch(inspectionsPageEvents);
+dispatch.opened();      // triggers the load effect → reducer updates state
+dispatch.removed(id);   // entity mutation via reducer
+store.total();          // computed signal
+```
+
+## Folder structure
+
+**`inspector-web`** (`apps/inspector-web/src/app`)
+
+```
+feature/        # one folder per feature/page (routed, lazy-loaded)
+components/     # shared/reusable presentational components
+service/        # logic + API calls (HttpClient)
+interceptors/   # HTTP interceptors
+guard/          # route guards
+constants/      # sharable constant values
+store/          # state management — <entity>.events.ts + <entity>.store.ts
+```
+
+**`inspector-api`** (`apps/inspector-api/src`)
+
+```
+api/<entity>/   # controller (actions) + routes (actions) + service (logic)
+middleware/     # Hono middleware (error handler, request id, …)
+utils/          # helpers (env, …)
+main.ts         # composes middleware + mounts entity routes
+```
+
+Add a new backend entity by creating `api/<entity>/{<entity>.service.ts,
+<entity>.controller.ts, <entity>.routes.ts}` and mounting it in `main.ts` with
+`app.route(...)`.
+
+## Build
+
+```bash
+npm run build       # both apps → dist/apps/*
+npm run build:web
+npm run build:api
+```
+
+## Useful Nx commands
+
+```bash
+npx nx graph                       # visualize the project graph
+npx nx show projects               # list all projects
+npx nx run-many -t build           # build everything
+```

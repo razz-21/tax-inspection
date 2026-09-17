@@ -1,0 +1,47 @@
+<main class="min-h-screen bg-background text-foreground p-8">
+  <header class="mx-auto max-w-4xl mb-8 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">Tax Inspections</h1>
+      <p class="text-muted-foreground text-sm">
+        spartan/ui + NgRx SignalStore (events + entities) + shared models
+      </p>
+    </div>
+    <button hlmBtn [disabled]="store.loading()" (click)="dispatch.reloaded()">
+      {{ store.loading() ? 'Loading…' : 'Reload' }}
+    </button>
+  </header>
+
+  <section class="mx-auto max-w-4xl grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <app-stat-card label="Total" [value]="store.total()" />
+    <app-stat-card label="Flagged" [value]="store.flaggedCount()" />
+    <app-stat-card label="Total due" [value]="formatCurrency(store.totalAmountDue())" />
+  </section>
+
+  @if (store.error(); as error) {
+    <p class="mx-auto max-w-4xl text-destructive mb-4">Failed to load: {{ error }}</p>
+  }
+
+  <section class="mx-auto max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4">
+    @for (inspection of store.entities(); track inspection.id) {
+      <div hlmCard [class.ring-2]="inspection.id === store.selected()?.id">
+        <div hlmCardHeader>
+          <h3 hlmCardTitle>Taxpayer {{ inspection.taxpayerId }}</h3>
+          <p hlmCardDescription>{{ statusLabels[inspection.status] }}</p>
+        </div>
+        <div hlmCardContent>
+          <p class="text-2xl font-semibold">{{ formatCurrency(inspection.amountDue) }}</p>
+        </div>
+        <div hlmCardFooter class="gap-2">
+          <button hlmBtn variant="outline" (click)="dispatch.selected(inspection.id)">
+            Select
+          </button>
+          <button hlmBtn variant="destructive" (click)="dispatch.removed(inspection.id)">
+            Remove
+          </button>
+        </div>
+      </div>
+    } @empty {
+      <p class="text-muted-foreground">No inspections loaded.</p>
+    }
+  </section>
+</main>
