@@ -1,0 +1,88 @@
+<div class="grid min-h-screen lg:grid-cols-2">
+  <!-- Left: form -->
+  <div class="flex flex-col p-8 lg:p-10">
+    <!-- Brand -->
+    <a href="#" class="flex items-center gap-2 font-medium w-fit">
+      <span
+        class="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground"
+      >
+        <ng-icon name="lucideGalleryVerticalEnd" size="1rem" />
+      </span>
+      Acme Inc.
+    </a>
+
+    <!-- Form -->
+    <div class="flex flex-1 items-center justify-center py-10">
+      <form
+        (submit)="$event.preventDefault(); onSubmit()"
+        class="w-full max-w-sm space-y-6"
+      >
+        @let emailField = loginForm.email();
+        @let passwordField = loginForm.password();
+
+        <div class="space-y-1.5 text-center">
+          <h1 class="text-2xl font-bold tracking-tight">Login to your account</h1>
+          <p class="text-sm text-muted-foreground">
+            Enter your email below to login to your account
+          </p>
+        </div>
+
+        <div class="space-y-5">
+          <!-- Email -->
+          <div class="space-y-2">
+            <label
+              hlmLabel
+              for="email"
+              [class.text-destructive]="emailField.touched() && emailField.invalid()"
+            >
+              Email
+            </label>
+            <input
+              hlmInput
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              [formField]="loginForm.email"
+              [forceInvalid]="emailField.touched() && emailField.invalid()"
+            />
+            @if (emailField.touched() && emailField.invalid()) {
+              <p class="text-sm text-destructive">{{ emailField.errors()[0]?.message }}</p>
+            }
+          </div>
+
+          <!-- Password -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label
+                hlmLabel
+                for="password"
+                [class.text-destructive]="passwordField.touched() && passwordField.invalid()"
+              >
+                Password
+              </label>
+              <a href="#" class="text-sm text-muted-foreground hover:underline">
+                Forgot password?
+              </a>
+            </div>
+            <hlm-password-input
+              id="password"
+              [field]="loginForm.password"
+              [forceInvalid]="passwordField.touched() && passwordField.invalid()"
+            />
+            @if (passwordField.touched() && passwordField.invalid()) {
+              <p class="text-sm text-destructive">{{ passwordField.errors()[0]?.message }}</p>
+            }
+          </div>
+        </div>
+
+        <button hlmBtn type="submit" class="w-full">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right: gradient background image -->
+  <div
+    class="hidden lg:block bg-cover bg-center"
+    style="background-image: url('/assets/blue-gradient-bg.jpg')"
+  ></div>
+</div>

@@ -4,8 +4,8 @@ import { HlmCardImports } from '@spartan-ng/helm/card';
 import { injectDispatch } from '@ngrx/signals/events';
 import { formatCurrency, INSPECTION_STATUS_LABELS } from '@tax-inspection/shared';
 import { StatCard } from '../../components/stat-card/stat-card';
-import { InspectionsStore } from '../../store/inspections.store';
-import { inspectionsPageEvents } from '../../store/inspections.events';
+import { InspectionsStore } from '../../store/inspections/inspections.store';
+import { inspectionsPageEvents } from '../../store/inspections/inspections.events';
 
 @Component({
   selector: 'app-inspections-page',

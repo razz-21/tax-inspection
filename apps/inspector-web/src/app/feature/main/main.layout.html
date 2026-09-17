@@ -1,0 +1,59 @@
+<hlm-sidebar-wrapper>
+  <hlm-sidebar collapsible="icon">
+    <!-- Brand -->
+    <div hlmSidebarHeader class="border-sidebar-border border-b">
+      <div class="flex items-center gap-2 px-2 py-1.5">
+        <span
+          class="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground"
+        >
+          <ng-icon name="lucideGalleryVerticalEnd" size="1rem" />
+        </span>
+        <div class="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
+          <span class="text-sm font-semibold">Acme Inc.</span>
+          <span class="text-muted-foreground text-xs">Tax Inspection</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div hlmSidebarContent>
+      <div hlmSidebarGroup>
+        <div hlmSidebarGroupLabel>Platform</div>
+        <div hlmSidebarGroupContent>
+          <ul hlmSidebarMenu>
+            @for (item of navItems; track item.link) {
+              <li hlmSidebarMenuItem>
+                <a
+                  hlmSidebarMenuButton
+                  [routerLink]="item.link"
+                  routerLinkActive
+                  #rla="routerLinkActive"
+                  [isActive]="rla.isActive"
+                >
+                  <ng-icon [name]="item.icon" />
+                  <span>{{ item.label }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <button hlmSidebarRail></button>
+  </hlm-sidebar>
+
+  <!-- Main content -->
+  <main hlmSidebarInset>
+    <header
+      class="flex h-14 items-center gap-2 border-b px-4"
+    >
+      <button hlmSidebarTrigger></button>
+      <span class="text-sm font-medium">Tax Inspection</span>
+    </header>
+
+    <div class="p-4 lg:p-6 max-w-[1200px] mx-auto w-full">
+      <router-outlet />
+    </div>
+  </main>
+</hlm-sidebar-wrapper>

@@ -21,7 +21,10 @@
             "input": "apps/inspector-web/public"
           }
         ],
-        "styles": ["apps/inspector-web/src/styles.scss"]
+        "styles": [
+          "apps/inspector-web/src/styles.scss",
+          "node_modules/@angular/cdk/overlay-prebuilt.css"
+        ]
       },
       "configurations": {
         "production": {

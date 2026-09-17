@@ -75,6 +75,22 @@ The web dev server proxies `/api/*` to the API
 
 Change the port with the `PORT` env var (defaults to `3000`).
 
+### Users API (`api/users/`, MongoDB)
+
+Full CRUD on the `users` collection, validated with the shared zod action
+schemas (`@hono/zod-validator`). Responses omit `password`.
+
+| Method | Path              | Body / Query          | Response          |
+| ------ | ----------------- | --------------------- | ----------------- |
+| GET    | `/api/users`      | `GetUsers` (paginated)| `GetUsersResponse`|
+| GET    | `/api/users/:id`  | —                     | `PublicUser` / 404|
+| POST   | `/api/users`      | `PostUser` (uuid id)  | `PublicUser` (201)|
+| PATCH  | `/api/users/:id`  | `PatchUser` (partial) | `PublicUser` / 404|
+| DELETE | `/api/users/:id`  | —                     | 204 / 404         |
+
+List supports `?page=&limit=&offset=&search=&sortBy=&sortOrder=` plus
+`role`/`status` filters. Invalid bodies/params → 400; duplicate id/email → 409.
+
 ## UI components — spartan/ui
 
 `inspector-web` uses [spartan/ui](https://spartan.ng) (Tailwind CSS v4 + the
@@ -138,10 +154,35 @@ store/          # state management — <entity>.events.ts + <entity>.store.ts
 
 ```
 api/<entity>/   # controller (actions) + routes (actions) + service (logic)
+config/         # env config + MongoDB connection
 middleware/     # Hono middleware (error handler, request id, …)
 utils/          # helpers (env, …)
-main.ts         # composes middleware + mounts entity routes
+main.ts         # connects to Mongo, composes middleware, mounts entity routes
 ```
+
+## Database — MongoDB
+
+The API connects to MongoDB (Atlas) on startup.
+
+- Config: `apps/inspector-api/src/config/env.ts` (reads env) and
+  `config/database.ts` (native `mongodb` driver — `connectToDatabase`, `getDb`,
+  `closeDatabase`).
+- Env: `apps/inspector-api/.env` (gitignored) holds `MONGODB_URI`,
+  `MONGODB_DB_NAME` (`tax-inspection-dev`), and `PORT`. See `.env.example`.
+  Nx auto-loads this project `.env` for `nx serve`/`nx build`; for standalone
+  `node` runs, `dotenv` loads it as a fallback.
+
+Use the connection inside any service via `getDb()`:
+
+```ts
+import { getDb } from '../../config/database';
+
+const inspections = getDb().collection<Inspection>('inspections');
+await inspections.find().toArray();
+```
+
+> ⚠️ The `.env` contains real credentials and is gitignored — never commit it.
+> Atlas must allow the running machine's IP (Network Access allowlist).
 
 Add a new backend entity by creating `api/<entity>/{<entity>.service.ts,
 <entity>.controller.ts, <entity>.routes.ts}` and mounting it in `main.ts` with

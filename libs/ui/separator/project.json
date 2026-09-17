@@ -1,0 +1,10 @@
+{
+  "name": "separator",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ui/separator/src",
+  "prefix": "hlm",
+  "tags": [],
+  "projectType": "library",
+  "// targets": "to see all targets run: nx show project separator --web",
+  "targets": {}
+}

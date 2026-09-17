@@ -1,4 +1,4 @@
-import type { InspectionStatus } from '../models/inspection.model';
+import type { InspectionStatus } from '../models';
 
 /** Base path all API routes are mounted under. */
 export const API_PREFIX = '/api';

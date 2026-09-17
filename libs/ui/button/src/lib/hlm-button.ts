@@ -1,5 +1,15 @@
-import { Directive, input, signal } from '@angular/core';
-import { BrnButton } from '@spartan-ng/brain/button';
+import {
+  booleanAttribute,
+  computed,
+  Directive,
+  effect,
+  ElementRef,
+  HOST_TAG_NAME,
+  inject,
+  input,
+  Renderer2,
+  signal,
+} from '@angular/core';
 import { classes } from '@spartan-ng/helm/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ClassValue } from 'clsx';
@@ -40,20 +50,73 @@ export type ButtonVariants = VariantProps<typeof buttonVariants>;
 @Directive({
 	selector: 'button[hlmBtn], a[hlmBtn]',
 	exportAs: 'hlmBtn',
-	hostDirectives: [{ directive: BrnButton, inputs: ['disabled'] }],
-	host: { 'data-slot': 'button' },
+	host: {
+		'data-slot': 'button',
+		'[attr.tabindex]': '_isDisabled() ? -1 : null',
+		'[attr.disabled]': '(!_isAnchor && _isDisabled()) || null',
+		'[attr.aria-disabled]': '(_isAnchor && _isDisabled()) || null',
+		'[attr.data-disabled]': '_isDisabled() || null',
+		'[attr.aria-busy]': 'loading() || null',
+		'(click)': '_onClick($event)',
+	},
 })
 export class HlmButton {
 	private readonly _config = injectBrnButtonConfig();
+	private readonly _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+	private readonly _renderer = inject(Renderer2);
+	protected readonly _isAnchor = inject(HOST_TAG_NAME) === 'a';
 
 	private readonly _additionalClasses = signal<ClassValue>('');
+	private _spinner: SVGElement | null = null;
 
 	public readonly variant = input<ButtonVariants['variant']>(this._config.variant);
 
 	public readonly size = input<ButtonVariants['size']>(this._config.size);
 
+	public readonly disabled = input(false, { transform: booleanAttribute });
+
+	/** When true, shows a leading spinner and disables the button. */
+	public readonly loading = input(false, { transform: booleanAttribute });
+
+	protected readonly _isDisabled = computed(() => this.disabled() || this.loading());
+
 	constructor() {
 		classes(() => [buttonVariants({ variant: this.variant(), size: this.size() }), this._additionalClasses()]);
+		effect(() => (this.loading() ? this._mountSpinner() : this._unmountSpinner()));
+	}
+
+	protected _onClick(event: Event): void {
+		if (this._isDisabled()) {
+			event.preventDefault();
+			event.stopImmediatePropagation();
+		}
+	}
+
+	private _mountSpinner(): void {
+		if (this._spinner) return;
+		const ns = 'http://www.w3.org/2000/svg';
+		const svg = this._renderer.createElement('svg', ns) as SVGElement;
+		this._renderer.setAttribute(svg, 'viewBox', '0 0 24 24');
+		this._renderer.setAttribute(svg, 'fill', 'none');
+		this._renderer.setAttribute(svg, 'stroke', 'currentColor');
+		this._renderer.setAttribute(svg, 'stroke-width', '2');
+		this._renderer.setAttribute(svg, 'stroke-linecap', 'round');
+		this._renderer.setAttribute(svg, 'aria-hidden', 'true');
+		this._renderer.setAttribute(svg, 'class', 'animate-spin');
+		this._renderer.setStyle(svg, 'width', '1em');
+		this._renderer.setStyle(svg, 'height', '1em');
+		const path = this._renderer.createElement('path', ns);
+		this._renderer.setAttribute(path, 'd', 'M21 12a9 9 0 1 1-6.219-8.56');
+		this._renderer.appendChild(svg, path);
+		const host = this._elementRef.nativeElement;
+		this._renderer.insertBefore(host, svg, host.firstChild);
+		this._spinner = svg;
+	}
+
+	private _unmountSpinner(): void {
+		if (!this._spinner) return;
+		this._renderer.removeChild(this._elementRef.nativeElement, this._spinner);
+		this._spinner = null;
 	}
 
 	setClass(classes: string): void {

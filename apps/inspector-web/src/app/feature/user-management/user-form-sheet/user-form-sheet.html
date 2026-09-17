@@ -1,0 +1,195 @@
+<hlm-sheet side="right" [state]="sheetState()" (closed)="onClosed()">
+  <hlm-sheet-content *brnSheetContent="let ctx" class="w-full sm:max-w-md!">
+    <div hlmSheetHeader>
+      <h3 hlmSheetTitle class="text-lg font-bold">
+        {{ isEditing() ? 'Edit user' : 'Add user' }}
+      </h3>
+      <p hlmSheetDescription>
+        {{ isEditing() ? 'Update this user account.' : 'Create a new user account.' }}
+      </p>
+    </div>
+
+    <form
+      (submit)="$event.preventDefault(); onSubmit()"
+      class="flex flex-1 flex-col overflow-y-auto"
+    >
+      @let fullnameField = createForm.fullname();
+      @let emailField = createForm.email();
+      @let passwordField = createForm.password();
+      @let confirmField = createForm.confirmPassword();
+
+      <!-- Profile photo -->
+      <div class="flex flex-col items-center gap-3 border-b px-4 pb-6">
+        <div class="relative">
+          <div
+            class="border-muted-foreground/30 bg-muted flex size-24 items-center justify-center overflow-hidden rounded-full border-2 border-dashed"
+          >
+            @if (model().avatar; as src) {
+              <img [src]="src" alt="Avatar preview" class="size-full object-cover" />
+            } @else {
+              <ng-icon name="lucideUser" class="text-muted-foreground" size="2rem" />
+            }
+          </div>
+          <button
+            type="button"
+            (click)="fileInput.click()"
+            aria-label="Upload photo"
+            class="bg-primary text-primary-foreground absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full"
+          >
+            <ng-icon name="lucideCamera" size="0.95rem" />
+          </button>
+        </div>
+
+        <div class="text-center">
+          <p class="text-sm font-semibold">
+            Profile photo
+            <span class="text-muted-foreground font-normal">(optional)</span>
+          </p>
+          <p class="text-muted-foreground text-xs">JPG or PNG, up to 2 MB</p>
+        </div>
+
+        <button hlmBtn variant="outline" type="button" (click)="fileInput.click()">
+          Upload
+        </button>
+        <input
+          #fileInput
+          type="file"
+          accept="image/jpeg,image/png"
+          class="hidden"
+          (change)="onFileSelected($event)"
+        />
+        @if (fileError(); as message) {
+          <p class="text-destructive text-xs">{{ message }}</p>
+        }
+      </div>
+
+      <!-- Fields -->
+      <div class="flex flex-col gap-4 p-4">
+        <!-- Full name -->
+        <div class="space-y-2">
+          <label hlmLabel for="fullname" [class.text-destructive]="fullnameField.touched() && fullnameField.invalid()">
+            Full name
+          </label>
+          <input
+            hlmInput
+            id="fullname"
+            type="text"
+            placeholder="Jane Doe"
+            [formField]="createForm.fullname"
+            [forceInvalid]="fullnameField.touched() && fullnameField.invalid()"
+          />
+          @if (fullnameField.touched() && fullnameField.invalid()) {
+            <p class="text-destructive text-sm">{{ fullnameField.errors()[0]?.message }}</p>
+          }
+        </div>
+
+        <!-- Email -->
+        <div class="space-y-2">
+          <label hlmLabel for="email" [class.text-destructive]="emailField.touched() && emailField.invalid()">
+            Email
+          </label>
+          <input
+            hlmInput
+            id="email"
+            type="email"
+            placeholder="m@example.com"
+            [formField]="createForm.email"
+            [forceInvalid]="emailField.touched() && emailField.invalid()"
+          />
+          @if (emailField.touched() && emailField.invalid()) {
+            <p class="text-destructive text-sm">{{ emailField.errors()[0]?.message }}</p>
+          }
+        </div>
+
+        <!-- Role -->
+        <div class="space-y-2">
+          <label hlmLabel for="role">Role</label>
+          <hlm-select [value]="model().role" [itemToString]="formatLabel" (valueChange)="setRole($event)">
+            <hlm-select-trigger id="role" class="w-full!">
+              <hlm-select-value placeholder="Select a role" />
+            </hlm-select-trigger>
+            <hlm-select-content *hlmSelectPortal>
+              <hlm-select-group>
+                <hlm-select-label>Roles</hlm-select-label>
+                @for (option of roleOptions; track option.value) {
+                  <hlm-select-item [value]="option.value">{{ option.label }}</hlm-select-item>
+                }
+              </hlm-select-group>
+            </hlm-select-content>
+          </hlm-select>
+        </div>
+
+        <!-- Status -->
+        <div class="space-y-2">
+          <label hlmLabel for="status">Status</label>
+          <hlm-select [value]="model().status" [itemToString]="formatLabel" (valueChange)="setStatus($event)">
+            <hlm-select-trigger id="status" class="w-full!">
+              <hlm-select-value placeholder="Select a status" />
+            </hlm-select-trigger>
+            <hlm-select-content *hlmSelectPortal>
+              <hlm-select-group>
+                <hlm-select-label>Status</hlm-select-label>
+                @for (option of statusOptions; track option.value) {
+                  <hlm-select-item [value]="option.value">{{ option.label }}</hlm-select-item>
+                }
+              </hlm-select-group>
+            </hlm-select-content>
+          </hlm-select>
+        </div>
+
+        <!-- Password -->
+        <div class="space-y-2">
+          <label hlmLabel for="password" [class.text-destructive]="passwordField.touched() && passwordField.invalid()">
+            Password
+          </label>
+          <hlm-password-input
+            id="password"
+            autocomplete="new-password"
+            [field]="createForm.password"
+            [forceInvalid]="passwordField.touched() && passwordField.invalid()"
+          />
+          @if (passwordField.touched() && passwordField.invalid()) {
+            <p class="text-destructive text-sm">{{ passwordField.errors()[0]?.message }}</p>
+          } @else if (isEditing()) {
+            <p class="text-muted-foreground text-sm">Leave blank to keep the current password.</p>
+          } @else {
+            <p class="text-muted-foreground text-sm">At least 8 characters.</p>
+          }
+        </div>
+
+        <!-- Confirm password -->
+        <div class="space-y-2">
+          <label hlmLabel for="confirmPassword" [class.text-destructive]="confirmField.touched() && confirmField.invalid()">
+            Confirm password
+          </label>
+          <hlm-password-input
+            id="confirmPassword"
+            autocomplete="new-password"
+            [field]="createForm.confirmPassword"
+            [forceInvalid]="confirmField.touched() && confirmField.invalid()"
+          />
+          @if (confirmField.touched() && confirmField.invalid()) {
+            <p class="text-destructive text-sm">{{ confirmField.errors()[0]?.message }}</p>
+          }
+        </div>
+
+        @if (error(); as message) {
+          <p class="text-destructive text-sm">{{ message }}</p>
+        }
+      </div>
+    </form>
+
+    <div class="mt-auto flex justify-end gap-2 border-t p-4">
+      <button hlmBtn variant="secondary" type="button" (click)="close()">Cancel</button>
+      <button hlmBtn type="button" [loading]="submitting()" (click)="onSubmit()">
+        {{
+          submitting()
+            ? 'Saving…'
+            : isEditing()
+              ? 'Save changes'
+              : 'Create user'
+        }}
+      </button>
+    </div>
+  </hlm-sheet-content>
+</hlm-sheet>

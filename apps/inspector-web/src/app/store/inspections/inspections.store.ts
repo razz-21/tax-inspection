@@ -10,7 +10,7 @@ import {
 import { Dispatcher, Events, on, withReducer } from '@ngrx/signals/events';
 import { mapResponse } from '@ngrx/operators';
 import type { Inspection } from '@tax-inspection/shared';
-import { InspectionsService } from '../service/inspections.service';
+import { InspectionsService } from '../../service/inspections.service';
 import {
   inspectionsApiEvents,
   inspectionsPageEvents,

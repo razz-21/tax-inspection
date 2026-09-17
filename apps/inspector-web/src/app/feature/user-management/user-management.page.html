@@ -1,0 +1,184 @@
+<div class="space-y-3">
+  <header class="mb-6">
+    <h2 class="text-2xl font-bold tracking-tight">User Management</h2>
+    <p class="text-muted-foreground text-sm">
+      Manage users and their access to the platform.
+    </p>
+  </header>
+
+  <!-- Toolbar: search (left) + Add user (right) -->
+  <div class="flex items-center justify-between gap-3">
+    <div class="relative w-full max-w-sm">
+      <ng-icon
+        name="lucideSearch"
+        size="1rem"
+        class="text-muted-foreground pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2"
+      />
+      <input
+        hlmInput
+        type="search"
+        placeholder="Search users..."
+        class="w-full pl-8!"
+        [value]="search()"
+        (input)="onSearch($event)"
+      />
+    </div>
+    <button hlmBtn (click)="formSheet.openForCreate()">
+      <ng-icon name="lucidePlus" size="1rem" class="mr-1" />
+      Add user
+    </button>
+  </div>
+
+  <div hlmCard class="p-0">
+    <div class="w-full overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-muted-foreground border-b">
+          <tr>
+            <th class="px-4 py-3 text-left font-normal">Name</th>
+            <th class="px-4 py-3 text-left font-normal">Email</th>
+            <th class="px-4 py-3 text-left font-normal">Role</th>
+            <th class="px-4 py-3 text-left font-normal">Status</th>
+            <th class="px-4 py-3 text-left font-normal">Created</th>
+            <th class="px-4 py-3 text-left font-normal">Updated</th>
+            <th class="px-4 py-3 text-right font-normal">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of store.entities(); track user.id) {
+            <tr
+              class="border-b last:border-0 cursor-pointer hover:bg-muted/50"
+              (click)="formSheet.openForEdit(user)"
+            >
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <hlm-avatar>
+                    @if (user.avatar) {
+                      <img hlmAvatarImage [src]="user.avatar" [alt]="user.fullname" />
+                    }
+                    <span hlmAvatarFallback class="text-xs">
+                      {{ user.fullname.charAt(0).toUpperCase() }}
+                    </span>
+                  </hlm-avatar>
+                  <span class="font-medium">{{ user.fullname }}</span>
+                </div>
+              </td>
+              <td class="px-4 py-3">{{ user.email }}</td>
+              <td class="px-4 py-3">
+                <span [class]="roleBadge(user.role)">{{ label(user.role) }}</span>
+              </td>
+              <td class="px-4 py-3">
+                <span [class]="statusBadge(user.status)">{{ label(user.status) }}</span>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                {{ user.createdAt | date: 'MMM d, y, h:mm a' }}
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                {{ user.updatedAt | date: 'MMM d, y, h:mm a' }}
+              </td>
+              <td class="px-4 py-3 text-right whitespace-nowrap">
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Edit user"
+                  (click)="$event.stopPropagation(); formSheet.openForEdit(user)"
+                >
+                  <ng-icon name="lucideSquarePen" size="1rem" />
+                </button>
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Delete user"
+                  class="text-destructive"
+                  (click)="$event.stopPropagation(); pendingDelete.set(user)"
+                >
+                  <ng-icon name="lucideTrash2" size="1rem" />
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td class="text-muted-foreground px-4 py-6 text-center" colspan="7">
+                @if (store.loading()) {
+                  Loading users…
+                } @else if (store.error()) {
+                  {{ store.error() }}
+                } @else {
+                  No users yet.
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination (right-aligned) -->
+  @if (store.meta(); as meta) {
+    @if (meta.totalPages >= 1) {
+      <div class="flex justify-end">
+        <nav hlmPagination class="mx-0! w-fit! justify-end">
+          <ul hlmPaginationContent>
+            <li
+              hlmPaginationItem
+              (click)="goToPage(meta.page - 1)"
+              [class.pointer-events-none]="meta.page <= 1"
+              [class.opacity-50]="meta.page <= 1"
+            >
+              <hlm-pagination-previous />
+            </li>
+            @for (p of pages(); track $index) {
+              <li hlmPaginationItem>
+                @if (p === '...') {
+                  <hlm-pagination-ellipsis />
+                } @else {
+                  <a hlmPaginationLink [isActive]="p === meta.page" (click)="goToPage(p)">
+                    {{ p }}
+                  </a>
+                }
+              </li>
+            }
+            <li
+              hlmPaginationItem
+              (click)="goToPage(meta.page + 1)"
+              [class.pointer-events-none]="meta.page >= meta.totalPages"
+              [class.opacity-50]="meta.page >= meta.totalPages"
+            >
+              <hlm-pagination-next />
+            </li>
+          </ul>
+        </nav>
+      </div>
+    }
+  }
+
+  <!-- Single form sheet instance, opened for create or edit -->
+  <app-user-form-sheet #formSheet (saved)="onSaved($event)" />
+
+  <!-- Delete confirmation -->
+  <hlm-alert-dialog
+    [state]="pendingDelete() ? 'open' : 'closed'"
+    (closed)="pendingDelete.set(null)"
+  >
+    <hlm-alert-dialog-content *brnAlertDialogContent>
+      <div hlmAlertDialogHeader>
+        <h3 hlmAlertDialogTitle>Delete user?</h3>
+        <p hlmAlertDialogDescription>
+          This will permanently delete
+          <span class="font-medium">{{ pendingDelete()?.fullname }}</span>. This
+          action cannot be undone.
+        </p>
+      </div>
+      <div hlmAlertDialogFooter>
+        <button hlmBtn variant="secondary" type="button" (click)="pendingDelete.set(null)">
+          Cancel
+        </button>
+        <button hlmBtn variant="destructive" type="button" (click)="deleteConfirmed()">
+          Delete
+        </button>
+      </div>
+    </hlm-alert-dialog-content>
+  </hlm-alert-dialog>
+</div>

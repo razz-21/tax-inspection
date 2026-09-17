@@ -1,0 +1,10 @@
+{
+  "name": "sheet",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ui/sheet/src",
+  "prefix": "hlm",
+  "tags": [],
+  "projectType": "library",
+  "// targets": "to see all targets run: nx show project sheet --web",
+  "targets": {}
+}

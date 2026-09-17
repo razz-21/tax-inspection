@@ -4,14 +4,15 @@ import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import {
   API_PREFIX,
-  DEFAULT_API_PORT,
   nowIso,
   type HealthCheck,
 } from '@tax-inspection/shared';
+import { env } from './config/env';
+import { closeDatabase, connectToDatabase } from './config/database';
 import { errorHandler } from './middleware/error-handler';
 import { requestId } from './middleware/request-id';
-import { getPort } from './utils/env';
 import { inspectionsRoutes } from './api/inspections/inspections.routes';
+import { usersRoutes } from './api/users/users.routes';
 
 const app = new Hono();
 
@@ -40,11 +41,28 @@ app.get(`${API_PREFIX}/hello`, (c) => {
 
 // --- entity APIs ---
 app.route(`${API_PREFIX}/inspections`, inspectionsRoutes);
+app.route(`${API_PREFIX}/users`, usersRoutes);
 
-const port = getPort(DEFAULT_API_PORT);
+async function bootstrap() {
+  await connectToDatabase();
 
-serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`🔥 Hono server listening on http://localhost:${info.port}`);
+  const server = serve({ fetch: app.fetch, port: env.port }, (info) => {
+    console.log(`🔥 Hono server listening on http://localhost:${info.port}`);
+  });
+
+  const shutdown = async () => {
+    server.close();
+    await closeDatabase();
+    process.exit(0);
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+bootstrap().catch((err) => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
 
 export default app;

@@ -12,3 +12,8 @@ export function isDefined<T>(value: T | null | undefined): value is T {
 export function nowIso(): string {
   return new Date().toISOString();
 }
+
+/** Generate a new UUID (v4). Use on the client to fill in an entity `id`. */
+export function newId(): string {
+  return crypto.randomUUID();
+}
