@@ -1,9 +1,14 @@
-import type { CanActivateFn } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, type CanActivateFn } from '@angular/router';
+import { AuthService } from '../service/auth.service';
 
 /**
- * Placeholder route guard. Replace the body with real auth/session logic
- * (e.g. inject an AuthService and check a signal, redirect on failure).
+ * Protects the authenticated shell. Signed-in users pass through; everyone
+ * else is redirected to the login page.
  */
 export const authGuard: CanActivateFn = () => {
-  return true;
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  return auth.isAuthenticated() ? true : router.createUrlTree(['/']);
 };

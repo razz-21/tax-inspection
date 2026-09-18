@@ -22,27 +22,82 @@ export const postUserSchema = userSchema.omit({
 });
 export type PostUser = z.infer<typeof postUserSchema>;
 
-/** PATCH /users/:id — partial update. `id` comes from the route, not the body. */
 export const patchUserSchema = userSchema
   .omit({ id: true, createdAt: true, updatedAt: true })
   .partial();
 export type PatchUser = z.infer<typeof patchUserSchema>;
 
-/** GET /users/:id — route params. */
 export const getUserSchema = z.object({ id: z.uuid() });
 export type GetUser = z.infer<typeof getUserSchema>;
 
-/** DELETE /users/:id — route params. */
 export const deleteUserSchema = z.object({ id: z.uuid() });
 export type DeleteUser = z.infer<typeof deleteUserSchema>;
 
-/** GET /users — pagination query (page/limit/offset) plus user filters. */
 export const getUsersSchema = paginationQuerySchema.extend({
   role: userRoleSchema.optional(),
   status: userStatusSchema.optional(),
 });
 export type GetUsers = z.infer<typeof getUsersSchema>;
 
-/** GET /users response — a paginated list of public users. */
 export const getUsersResponseSchema = paginatedSchema(publicUserSchema);
 export type GetUsersResponse = Paginated<PublicUser>;
+
+export const loginSchema = z.object({
+  email: z.email(),
+  password: z.string().min(1),
+});
+export type Login = z.infer<typeof loginSchema>;
+
+export const loginResponseSchema = z.object({
+  user: publicUserSchema,
+  /** Short-lived JWT (15m). Sent as `Authorization: Bearer <token>`. */
+  accessToken: z.string(),
+  /** Long-lived JWT (7d). Exchanged at /users/refresh for a new access token. */
+  refreshToken: z.string(),
+});
+export type LoginResponse = z.infer<typeof loginResponseSchema>;
+
+/** Decoded JWT access-token claims. `sub` is the user's id. */
+export interface AccessTokenClaims {
+  sub: string;
+  email: string;
+  role: PublicUser['role'];
+  iat: number;
+  exp: number;
+}
+
+/** Decoded JWT refresh-token claims. `sub` is the user's id. */
+export interface RefreshTokenClaims {
+  sub: string;
+  type: 'refresh';
+  iat: number;
+  exp: number;
+}
+
+/** POST /users/refresh — exchange a refresh token for a fresh access token. */
+export const refreshSchema = z.object({ refreshToken: z.string().min(1) });
+export type RefreshRequest = z.infer<typeof refreshSchema>;
+
+/** POST /users/refresh response — a new access token. */
+export const refreshResponseSchema = z.object({ accessToken: z.string() });
+export type RefreshResponse = z.infer<typeof refreshResponseSchema>;
+
+export type LoginErrorReason =
+  | 'invalid_credentials'
+  | 'inactive'
+  | 'needs_approval';
+
+export interface LoginErrorResponse {
+  error: string;
+  reason: LoginErrorReason;
+}
+
+export const LOGIN_STATUS_MESSAGES: Record<
+  Exclude<LoginErrorReason, 'invalid_credentials'>,
+  string
+> = {
+  inactive:
+    'Your account is inactive. Please contact an administrator to regain access.',
+  needs_approval:
+    'Your account is pending approval. An administrator must approve it before you can sign in.',
+};

@@ -27,6 +27,15 @@
           </p>
         </div>
 
+        @if (serverError()) {
+          <div
+            role="alert"
+            class="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            {{ serverError() }}
+          </div>
+        }
+
         <div class="space-y-5">
           <!-- Email -->
           <div class="space-y-2">
@@ -75,7 +84,9 @@
           </div>
         </div>
 
-        <button hlmBtn type="submit" class="w-full">Login</button>
+        <button hlmBtn type="submit" class="w-full" [disabled]="submitting()">
+          {{ submitting() ? 'Signing in…' : 'Login' }}
+        </button>
       </form>
     </div>
   </div>

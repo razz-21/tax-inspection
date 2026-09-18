@@ -9,11 +9,16 @@ export const appRoutes: Route[] = [
       import('./feature/login/login.page').then((m) => m.LoginPage),
   },
   {
-    path: '',
+    path: 'main',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./feature/main/main.layout').then((m) => m.MainLayout),
     children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'dashboard',
+      },
       {
         path: 'dashboard',
         loadComponent: () =>

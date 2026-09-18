@@ -37,8 +37,8 @@ interface NavItem {
 })
 export class MainLayout {
   protected readonly navItems: NavItem[] = [
-    { label: 'Dashboard', icon: 'lucideLayoutDashboard', link: '/dashboard' },
-    { label: 'Inspections', icon: 'lucideClipboardCheck', link: '/inspections' },
-    { label: 'User Management', icon: 'lucideUsers', link: '/user-management' },
+    { label: 'Dashboard', icon: 'lucideLayoutDashboard', link: '/main/dashboard' },
+    { label: 'Inspections', icon: 'lucideClipboardCheck', link: '/main/inspections' },
+    { label: 'User Management', icon: 'lucideUsers', link: '/main/user-management' },
   ];
 }

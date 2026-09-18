@@ -4,13 +4,20 @@ import {
   nowIso,
   type GetUsers,
   type GetUsersResponse,
+  type Login,
+  type LoginErrorReason,
   type PatchUser,
   type PostUser,
   type PublicUser,
   type User,
 } from '@tax-inspection/shared';
 import { getDb } from '../../config/database';
-import { hashPassword } from '../../utils/password';
+import { hashPassword, verifyPassword } from '../../utils/password';
+
+/** Result of an authentication attempt. */
+export type AuthResult =
+  | { ok: true; user: PublicUser }
+  | { ok: false; reason: LoginErrorReason };
 
 interface UserDoc {
   _id: string;
@@ -89,6 +96,25 @@ export const usersService = {
 
   async findByEmail(email: string): Promise<UserDoc | null> {
     return collection().findOne({ email });
+  },
+
+  /**
+   * Verify credentials and account status. Only `active` users may sign in;
+   * `inactive` and `needs_approval` accounts are rejected with a reason the
+   * UI can explain. Unknown emails and bad passwords share one generic reason
+   * so we don't reveal which accounts exist.
+   */
+  async authenticate({ email, password }: Login): Promise<AuthResult> {
+    const doc = await collection().findOne({ email });
+    if (!doc || !(await verifyPassword(password, doc.password))) {
+      return { ok: false, reason: 'invalid_credentials' };
+    }
+
+    if (doc.status !== 'active') {
+      return { ok: false, reason: doc.status };
+    }
+
+    return { ok: true, user: toPublic(toDomain(doc)) };
   },
 
   async create(input: PostUser): Promise<PublicUser> {
