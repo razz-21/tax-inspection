@@ -1,0 +1,92 @@
+<div class="flex min-h-full flex-col bg-muted/30">
+  <!-- Top bar -->
+  <header
+    class="sticky top-0 z-10 flex items-center gap-3 border-b bg-background px-4 py-3"
+  >
+    <a
+      routerLink="/field-officer/profile"
+      class="-ml-1 flex size-9 items-center justify-center rounded-lg border text-muted-foreground hover:bg-accent"
+      aria-label="Back"
+    >
+      <ng-icon name="lucideArrowLeft" size="1.25rem" />
+    </a>
+    <div class="min-w-0">
+      <h1 class="text-lg font-semibold leading-tight">Edit profile</h1>
+      <p class="truncate text-xs text-muted-foreground">{{ me.email() }}</p>
+    </div>
+  </header>
+
+  <form
+    class="flex flex-1 flex-col"
+    (submit)="$event.preventDefault(); onSubmit()"
+  >
+    <div class="flex-1 space-y-4 p-4">
+      @let fullnameField = editForm.fullname();
+
+      <section class="space-y-5 rounded-2xl border bg-card p-5 shadow-sm">
+        <!-- Full name -->
+        <div class="space-y-2">
+          <label
+            hlmLabel
+            for="fullname"
+            [class.text-destructive]="fullnameField.touched() && fullnameField.invalid()"
+          >
+            Full name
+          </label>
+          <input
+            hlmInput
+            id="fullname"
+            class="w-full"
+            autocomplete="name"
+            placeholder="Your full name"
+            [formField]="editForm.fullname"
+            [forceInvalid]="fullnameField.touched() && fullnameField.invalid()"
+          />
+          @if (fullnameField.touched() && fullnameField.invalid()) {
+            <p class="text-sm text-destructive">
+              {{ fullnameField.errors()[0]?.message }}
+            </p>
+          }
+        </div>
+
+        <!-- Contact number -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label hlmLabel for="contact-number">Contact number</label>
+            <span class="text-sm text-muted-foreground">Optional</span>
+          </div>
+          <input
+            hlmInput
+            id="contact-number"
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            class="w-full"
+            placeholder="+63 917 555 0142"
+            [formField]="editForm.contactNumber"
+          />
+        </div>
+      </section>
+    </div>
+
+    <!-- Actions -->
+    <div class="space-y-3 p-4">
+      <button
+        hlmBtn
+        type="submit"
+        class="h-12 w-full rounded-xl text-base font-semibold"
+        [disabled]="submitting() || editForm().invalid()"
+      >
+        {{ submitting() ? 'Saving…' : 'Save changes' }}
+      </button>
+      <a
+        hlmBtn
+        variant="ghost"
+        routerLink="/field-officer/profile"
+        class="h-11 w-full text-base font-semibold"
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>

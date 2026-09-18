@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import {
+  changePasswordSchema,
   deleteUserSchema,
   getUserSchema,
   getUsersSchema,
@@ -22,6 +23,10 @@ export const usersRoutes = new Hono()
   )
   // Everything below requires a valid `Authorization: Bearer <jwt>`.
   .use('*', requireAuth)
+  // Change the signed-in user's own password (id comes from the token).
+  .post('/change-password', zValidator('json', changePasswordSchema), (c) =>
+    usersController.changePassword(c, c.req.valid('json')),
+  )
   .get('/', zValidator('query', getUsersSchema), (c) =>
     usersController.getAll(c, c.req.valid('query')),
   )

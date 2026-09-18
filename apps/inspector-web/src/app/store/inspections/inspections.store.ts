@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 import { signalStore, withComputed, withHooks, withState } from '@ngrx/signals';
 import {
+  removeAllEntities,
   removeEntity,
   setAllEntities,
   withEntities,
@@ -11,6 +12,7 @@ import { Dispatcher, Events, on, withReducer } from '@ngrx/signals/events';
 import { mapResponse } from '@ngrx/operators';
 import type { Inspection } from '@tax-inspection/shared';
 import { InspectionsService } from '../../service/inspections.service';
+import { authEvents } from '../auth/auth.events';
 import {
   inspectionsApiEvents,
   inspectionsPageEvents,
@@ -62,6 +64,8 @@ export const InspectionsStore = signalStore(
       selectedId: payload,
     })),
     on(inspectionsPageEvents.removed, ({ payload }) => removeEntity(payload)),
+    // Drop cached inspections when the user logs out.
+    on(authEvents.loggedOut, () => [removeAllEntities(), initialState]),
   ),
   // Side effects: listen for UI events, call the API, dispatch API events.
   withHooks({

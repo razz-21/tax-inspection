@@ -4,6 +4,7 @@ import { mergeMap, switchMap } from 'rxjs';
 import { signalStore, withComputed, withHooks, withState } from '@ngrx/signals';
 import {
   addEntity,
+  removeAllEntities,
   removeEntity,
   setAllEntities,
   withEntities,
@@ -12,6 +13,7 @@ import { Dispatcher, Events, on, withReducer } from '@ngrx/signals/events';
 import { mapResponse } from '@ngrx/operators';
 import type { DeliveryInspection } from '@tax-inspection/shared';
 import { DeliveryInspectionsService } from '../../service/delivery-inspections.service';
+import { authEvents } from '../auth/auth.events';
 import {
   deliveryInspectionsApiEvents,
   deliveryInspectionsPageEvents,
@@ -63,6 +65,8 @@ export const DeliveryInspectionsStore = signalStore(
       deliveryInspectionsApiEvents.removedFailure,
       ({ payload }) => ({ error: payload }),
     ),
+    // Drop cached inspections when the user logs out.
+    on(authEvents.loggedOut, () => [removeAllEntities(), initialState]),
   ),
   // Side effects: listen for UI events, call the API, dispatch API events.
   withHooks({

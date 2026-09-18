@@ -4,6 +4,7 @@ import { mergeMap, switchMap } from 'rxjs';
 import { signalStore, withComputed, withHooks, withState } from '@ngrx/signals';
 import {
   addEntity,
+  removeAllEntities,
   removeEntity,
   setAllEntities,
   upsertEntity,
@@ -17,6 +18,7 @@ import type {
   PublicUser,
 } from '@tax-inspection/shared';
 import { UsersService } from '../../service/users.service';
+import { authEvents } from '../auth/auth.events';
 import { usersApiEvents, usersPageEvents } from './users.events';
 
 interface UsersState {
@@ -74,6 +76,8 @@ export const UsersStore = signalStore(
       ({ payload }) => ({ error: payload }),
     ),
     on(usersPageEvents.selected, ({ payload }) => ({ selectedId: payload })),
+    // Drop cached users when the user logs out.
+    on(authEvents.loggedOut, () => [removeAllEntities(), initialState]),
   ),
   // Side effects: listen for UI events, call the API, dispatch API events.
   withHooks({

@@ -1,0 +1,111 @@
+<header
+  class="sticky top-0 z-10 flex h-14 items-center border-b bg-background px-4"
+>
+  <h1 class="text-lg font-semibold">Profile</h1>
+</header>
+
+<div class="min-h-full bg-muted/40 p-4 pb-10">
+  <div class="mx-auto max-w-md space-y-4">
+    <!-- Identity card -->
+    <section
+      class="flex flex-col items-center rounded-2xl border bg-card px-6 py-8 text-center shadow-sm"
+    >
+      <hlm-avatar class="size-24 shadow-md ring-4 ring-background">
+        @if (me.avatar()) {
+          <img hlmAvatarImage [src]="me.avatar()" [alt]="me.fullname()" />
+        }
+        <span
+          hlmAvatarFallback
+          class="bg-neutral-900 text-2xl font-bold text-white"
+        >
+          {{ me.initials() }}
+        </span>
+      </hlm-avatar>
+
+      <h2 class="mt-4 text-xl font-bold tracking-tight">{{ me.fullname() }}</h2>
+      <p class="text-sm text-muted-foreground">{{ me.email() }}</p>
+
+      @if (roleLabel()) {
+        <span
+          class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold"
+        >
+          <ng-icon name="lucideShield" size="0.875rem" />
+          {{ roleLabel() }}
+        </span>
+      }
+    </section>
+
+    <!-- Account details card -->
+    <section class="overflow-hidden rounded-2xl border bg-card shadow-sm">
+      <div class="flex items-center gap-3 px-5 py-4">
+        <span
+          class="flex size-9 items-center justify-center rounded-lg bg-muted text-foreground"
+        >
+          <ng-icon name="lucideUser" size="1.125rem" />
+        </span>
+        <h3 class="text-base font-bold">Account details</h3>
+      </div>
+
+      <dl class="divide-y border-t">
+        <div class="flex items-center justify-between gap-3 px-5 py-4">
+          <dt class="text-sm text-muted-foreground">Full name</dt>
+          <dd class="text-right text-sm font-semibold">{{ me.fullname() }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3 px-5 py-4">
+          <dt class="text-sm text-muted-foreground">Email</dt>
+          <dd class="text-right text-sm font-semibold">{{ me.email() }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3 px-5 py-4">
+          <dt class="text-sm text-muted-foreground">Contact number</dt>
+          <dd class="text-right text-sm font-semibold">{{ contactNumber() }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-3 px-5 py-4">
+          <dt class="text-sm text-muted-foreground">Role</dt>
+          <dd class="text-right text-sm font-semibold">{{ roleLabel() || '—' }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- Change password -->
+    <button
+      type="button"
+      class="flex w-full items-center gap-3 rounded-2xl border bg-card px-5 py-4 text-left shadow-sm transition hover:bg-accent/50"
+      (click)="changePassword()"
+    >
+      <span
+        class="flex size-9 items-center justify-center rounded-lg bg-muted text-foreground"
+      >
+        <ng-icon name="lucideLock" size="1.125rem" />
+      </span>
+      <span class="flex-1 text-sm font-semibold">Change password</span>
+      <ng-icon
+        name="lucideChevronRight"
+        size="1.125rem"
+        class="text-muted-foreground"
+      />
+    </button>
+
+    <!-- Edit profile -->
+    <button
+      hlmBtn
+      type="button"
+      class="h-12 w-full rounded-xl bg-neutral-900 text-base font-semibold text-white hover:bg-neutral-800"
+      (click)="editProfile()"
+    >
+      <ng-icon name="lucidePencil" size="1.125rem" class="mr-2" />
+      Edit profile
+    </button>
+
+    <!-- Log out -->
+    <button
+      hlmBtn
+      variant="outline"
+      type="button"
+      class="h-12 w-full rounded-xl border-destructive/30 text-base font-semibold text-destructive hover:bg-destructive/5 hover:text-destructive"
+      (click)="logout()"
+    >
+      <ng-icon name="lucideLogOut" size="1.125rem" class="mr-2" />
+      Log out
+    </button>
+  </div>
+</div>

@@ -16,14 +16,17 @@ import type {
   RefreshRequest,
   RefreshResponse,
 } from '@tax-inspection/shared';
+import { Dispatcher } from '@ngrx/signals/events';
 import { API_ENDPOINTS } from '../constants/api.constants';
 import { MeStore } from '../store/me/me.store';
+import { authEvents } from '../store/auth/auth.events';
 
 /** Authentication API calls. Session state lives in {@link MeStore}. */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly me = inject(MeStore);
+  private readonly dispatcher = inject(Dispatcher);
 
   /** The signed-in user, or `null` when logged out. */
   readonly currentUser = this.me.user;
@@ -60,7 +63,7 @@ export class AuthService {
 
     const refreshToken = this.me.refreshToken();
     if (!refreshToken) {
-      this.me.clear();
+      this.clearSession();
       return throwError(() => new Error('No refresh token available'));
     }
 
@@ -71,7 +74,7 @@ export class AuthService {
         map((res) => res.accessToken),
         tap((accessToken) => this.me.setAccessToken(accessToken)),
         catchError((err) => {
-          this.me.clear();
+          this.clearSession();
           return throwError(() => err);
         }),
         finalize(() => (this.refreshInFlight = null)),
@@ -82,6 +85,15 @@ export class AuthService {
   }
 
   logout(): void {
+    this.clearSession();
+  }
+
+  /**
+   * Clear the session and broadcast `loggedOut` so feature stores drop any
+   * cached data from the previous user.
+   */
+  private clearSession(): void {
     this.me.clear();
+    this.dispatcher.dispatch(authEvents.loggedOut());
   }
 }

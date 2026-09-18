@@ -37,6 +37,20 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'profile/edit',
+        loadComponent: () =>
+          import(
+            './feature/field-officer/edit-profile/edit-profile.page'
+          ).then((m) => m.EditProfilePage),
+      },
+      {
+        path: 'profile/change-password',
+        loadComponent: () =>
+          import(
+            './feature/field-officer/change-password/change-password.page'
+          ).then((m) => m.ChangePasswordPage),
+      },
+      {
         path: 'deliveries/create',
         loadComponent: () =>
           import(

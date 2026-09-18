@@ -82,6 +82,23 @@ export type RefreshRequest = z.infer<typeof refreshSchema>;
 export const refreshResponseSchema = z.object({ accessToken: z.string() });
 export type RefreshResponse = z.infer<typeof refreshResponseSchema>;
 
+/**
+ * POST /users/change-password — change the signed-in user's password. The
+ * user is taken from the access token; the new password must be 8+ chars with
+ * at least one upper and one lower case letter.
+ */
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z
+    .string()
+    .min(8, 'Use at least 8 characters.')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z]).{8,}$/,
+      'Include both upper and lower case letters.',
+    ),
+});
+export type ChangePassword = z.infer<typeof changePasswordSchema>;
+
 export type LoginErrorReason =
   | 'invalid_credentials'
   | 'inactive'

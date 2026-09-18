@@ -104,6 +104,24 @@ export const MeStore = signalStore(
         );
       }
     },
+    /** Merge changes into the signed-in user and re-persist the session. */
+    updateUser(changes: Partial<PublicUser>): void {
+      const current = store.user();
+      if (!current) return;
+      const user = { ...current, ...changes };
+      patchState(store, { user });
+      const { accessToken, refreshToken } = store;
+      if (accessToken() && refreshToken()) {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            user,
+            accessToken: accessToken()!,
+            refreshToken: refreshToken()!,
+          } satisfies PersistedSession),
+        );
+      }
+    },
     /** Clear the session (logout). */
     clear(): void {
       patchState(store, EMPTY);

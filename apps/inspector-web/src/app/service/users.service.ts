@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import type { Observable } from 'rxjs';
 import type {
+  ChangePassword,
   GetUsers,
   GetUsersResponse,
   PatchUser,
@@ -39,5 +40,13 @@ export class UsersService {
 
   remove(id: string): Observable<void> {
     return this.http.delete<void>(`${API_ENDPOINTS.users}/${id}`);
+  }
+
+  /** Change the signed-in user's password (user resolved from the token). */
+  changePassword(body: ChangePassword): Observable<void> {
+    return this.http.post<void>(
+      `${API_ENDPOINTS.users}/change-password`,
+      body,
+    );
   }
 }

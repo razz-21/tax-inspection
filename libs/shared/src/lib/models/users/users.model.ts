@@ -15,6 +15,7 @@ export const userSchema = z.object({
   role: userRoleSchema,
   status: userStatusSchema,
   avatar: z.string().default(''),
+  contact_number: z.string().optional(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

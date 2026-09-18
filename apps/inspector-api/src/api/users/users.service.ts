@@ -2,6 +2,7 @@ import type { Collection } from 'mongodb';
 import {
   buildPaginationMeta,
   nowIso,
+  type ChangePassword,
   type GetUsers,
   type GetUsersResponse,
   type Login,
@@ -19,6 +20,11 @@ export type AuthResult =
   | { ok: true; user: PublicUser }
   | { ok: false; reason: LoginErrorReason };
 
+/** Result of a change-password attempt. */
+export type ChangePasswordResult =
+  | { ok: true }
+  | { ok: false; reason: 'not_found' | 'invalid_current' };
+
 interface UserDoc {
   _id: string;
   fullname: string;
@@ -27,6 +33,7 @@ interface UserDoc {
   role: User['role'];
   status: User['status'];
   avatar?: string;
+  contact_number?: string;
   created_at: string;
   updated_at: string;
 }
@@ -47,6 +54,7 @@ function toDomain(doc: UserDoc): User {
     role: doc.role,
     status: doc.status,
     avatar: doc.avatar ?? '',
+    contact_number: doc.contact_number,
     createdAt: toIso(doc.created_at),
     updatedAt: toIso(doc.updated_at),
   };
@@ -127,6 +135,7 @@ export const usersService = {
       role: input.role,
       status: input.status,
       avatar: input.avatar ?? '',
+      contact_number: input.contact_number,
       created_at: timestamp,
       updated_at: timestamp,
     };
@@ -153,5 +162,28 @@ export const usersService = {
   async remove(id: string): Promise<boolean> {
     const result = await collection().deleteOne({ _id: id });
     return result.deletedCount === 1;
+  },
+
+  /**
+   * Change a user's password after verifying their current one. The new
+   * password is hashed before storage.
+   */
+  async changePassword(
+    id: string,
+    { currentPassword, newPassword }: ChangePassword,
+  ): Promise<ChangePasswordResult> {
+    const doc = await collection().findOne({ _id: id });
+    if (!doc) {
+      return { ok: false, reason: 'not_found' };
+    }
+    if (!(await verifyPassword(currentPassword, doc.password))) {
+      return { ok: false, reason: 'invalid_current' };
+    }
+
+    await collection().updateOne(
+      { _id: id },
+      { $set: { password: await hashPassword(newPassword), updated_at: nowIso() } },
+    );
+    return { ok: true };
   },
 };

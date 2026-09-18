@@ -1,6 +1,8 @@
 import type { Context } from 'hono';
 import {
   LOGIN_STATUS_MESSAGES,
+  type AccessTokenClaims,
+  type ChangePassword,
   type DeleteUser,
   type GetUser,
   type GetUsers,
@@ -104,6 +106,25 @@ export const usersController = {
     if (!deleted) {
       return c.json({ error: `User ${params.id} not found` }, 404);
     }
+    return c.body(null, 204);
+  },
+
+  async changePassword(c: Context, body: ChangePassword) {
+    // The user is taken from the verified access token — you can only change
+    // your own password.
+    const claims = c.get('user') as AccessTokenClaims | undefined;
+    if (!claims?.sub) {
+      return c.json({ error: 'Unauthenticated' }, 401);
+    }
+
+    const result = await usersService.changePassword(claims.sub, body);
+    if (!result.ok) {
+      if (result.reason === 'invalid_current') {
+        return c.json({ error: 'Your current password is incorrect.' }, 400);
+      }
+      return c.json({ error: 'User not found' }, 404);
+    }
+
     return c.body(null, 204);
   },
 };
