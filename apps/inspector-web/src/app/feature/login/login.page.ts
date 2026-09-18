@@ -10,6 +10,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { AuthService } from '../../service/auth.service';
+import { homeUrlForRole } from '../../guard/role.guard';
 
 interface LoginModel {
   email: string;
@@ -55,8 +56,8 @@ export class LoginPage {
 
     this.submitting.set(true);
     try {
-      await firstValueFrom(this.auth.login(this.model()));
-      await this.router.navigateByUrl('/main');
+      const user = await firstValueFrom(this.auth.login(this.model()));
+      await this.router.navigateByUrl(homeUrlForRole(user.role));
     } catch (err) {
       this.serverError.set(this.messageFor(err));
     } finally {

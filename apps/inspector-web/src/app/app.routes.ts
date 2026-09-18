@@ -1,5 +1,6 @@
 import { Route } from '@angular/router';
 import { authGuard } from './guard/auth.guard';
+import { backOfficeGuard, fieldOfficerGuard } from './guard/role.guard';
 
 export const appRoutes: Route[] = [
   {
@@ -9,8 +10,44 @@ export const appRoutes: Route[] = [
       import('./feature/login/login.page').then((m) => m.LoginPage),
   },
   {
+    path: 'field-officer',
+    canActivate: [authGuard, fieldOfficerGuard],
+    loadComponent: () =>
+      import('./feature/field-officer/field-officer.layout').then(
+        (m) => m.FieldOfficerLayout,
+      ),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'deliveries',
+      },
+      {
+        path: 'deliveries',
+        loadComponent: () =>
+          import('./feature/field-officer/deliveries/deliveries.page').then(
+            (m) => m.DeliveriesPage,
+          ),
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./feature/field-officer/profile/profile.page').then(
+            (m) => m.ProfilePage,
+          ),
+      },
+      {
+        path: 'deliveries/create',
+        loadComponent: () =>
+          import(
+            './feature/field-officer/create-delivery/create-delivery.page'
+          ).then((m) => m.CreateDeliveryPage),
+      },
+    ],
+  },
+  {
     path: 'main',
-    canActivate: [authGuard],
+    canActivate: [authGuard, backOfficeGuard],
     loadComponent: () =>
       import('./feature/main/main.layout').then((m) => m.MainLayout),
     children: [

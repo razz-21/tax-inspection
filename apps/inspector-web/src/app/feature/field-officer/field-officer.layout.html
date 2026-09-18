@@ -1,0 +1,21 @@
+<div class="mx-auto flex h-dvh w-full max-w-md flex-col border-x bg-background">
+  <!-- Content -->
+  <main class="flex-1 overflow-y-auto">
+    <router-outlet />
+  </main>
+
+  <!-- Bottom navigation -->
+  <nav class="grid grid-cols-2 border-t bg-background">
+    @for (tab of tabs; track tab.link) {
+      <a
+        [routerLink]="tab.link"
+        routerLinkActive="text-primary"
+        #rla="routerLinkActive"
+        class="flex flex-col items-center gap-1 py-2.5 text-xs font-medium text-muted-foreground transition-colors"
+      >
+        <ng-icon [name]="tab.icon" size="1.375rem" />
+        <span>{{ tab.label }}</span>
+      </a>
+    }
+  </nav>
+</div>
