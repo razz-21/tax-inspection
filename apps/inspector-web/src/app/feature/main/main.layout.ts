@@ -2,9 +2,13 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideChartColumn,
   lucideClipboardCheck,
+  lucideCreditCard,
   lucideGalleryVerticalEnd,
+  lucideLayers,
   lucideLayoutDashboard,
+  lucideTruck,
   lucideUsers,
 } from '@ng-icons/lucide';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
@@ -31,6 +35,10 @@ interface NavItem {
       lucideGalleryVerticalEnd,
       lucideLayoutDashboard,
       lucideClipboardCheck,
+      lucideTruck,
+      lucideCreditCard,
+      lucideLayers,
+      lucideChartColumn,
       lucideUsers,
     }),
   ],
@@ -40,7 +48,11 @@ interface NavItem {
 export class MainLayout {
   protected readonly navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'lucideLayoutDashboard', link: '/main/dashboard' },
+    { label: 'Deliveries', icon: 'lucideTruck', link: '/main/deliveries' },
     { label: 'Inspections', icon: 'lucideClipboardCheck', link: '/main/inspections' },
+    { label: 'Payments', icon: 'lucideCreditCard', link: '/main/payments' },
+    { label: 'Source of Materials', icon: 'lucideLayers', link: '/main/source-of-materials' },
+    { label: 'Reports', icon: 'lucideChartColumn', link: '/main/reports' },
     { label: 'User Management', icon: 'lucideUsers', link: '/main/user-management' },
   ];
 }

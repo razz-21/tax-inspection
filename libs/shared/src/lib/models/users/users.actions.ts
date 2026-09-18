@@ -36,6 +36,9 @@ export type DeleteUser = z.infer<typeof deleteUserSchema>;
 export const getUsersSchema = paginationQuerySchema.extend({
   role: userRoleSchema.optional(),
   status: userStatusSchema.optional(),
+  // Newest users first by default, so freshly created users appear on top.
+  sortBy: z.string().default('created_at'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
 export type GetUsers = z.infer<typeof getUsersSchema>;
 

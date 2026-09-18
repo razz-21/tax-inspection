@@ -102,10 +102,34 @@
       variant="outline"
       type="button"
       class="h-12 w-full rounded-xl border-destructive/30 text-base font-semibold text-destructive hover:bg-destructive/5 hover:text-destructive"
-      (click)="logout()"
+      (click)="confirmLogout.set(true)"
     >
       <ng-icon name="lucideLogOut" size="1.125rem" class="mr-2" />
       Log out
     </button>
   </div>
 </div>
+
+<!-- Log out confirmation -->
+<hlm-alert-dialog
+  [state]="confirmLogout() ? 'open' : 'closed'"
+  (closed)="confirmLogout.set(false)"
+>
+  <hlm-alert-dialog-content *brnAlertDialogContent>
+    <div hlmAlertDialogHeader>
+      <h3 hlmAlertDialogTitle>Log out?</h3>
+      <p hlmAlertDialogDescription>
+        Are you sure you want to log out? You'll need to sign in again to
+        continue.
+      </p>
+    </div>
+    <div hlmAlertDialogFooter>
+      <button hlmBtn variant="secondary" type="button" (click)="confirmLogout.set(false)">
+        Cancel
+      </button>
+      <button hlmBtn variant="destructive" type="button" (click)="confirmLogoutAndSignOut()">
+        Log out
+      </button>
+    </div>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   inject,
+  signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -14,6 +15,8 @@ import {
   lucideShield,
   lucideUser,
 } from '@ng-icons/lucide';
+import { BrnAlertDialogContent } from '@spartan-ng/brain/alert-dialog';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { AuthService } from '../../../service/auth.service';
@@ -22,7 +25,13 @@ import { MeStore } from '../../../store/me/me.store';
 /** Field officer's profile (mobile): identity, account details, actions. */
 @Component({
   selector: 'app-profile-page',
-  imports: [NgIcon, HlmAvatarImports, HlmButtonImports],
+  imports: [
+    NgIcon,
+    BrnAlertDialogContent,
+    HlmAlertDialogImports,
+    HlmAvatarImports,
+    HlmButtonImports,
+  ],
   providers: [
     provideIcons({
       lucideShield,
@@ -40,6 +49,9 @@ export class ProfilePage {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   protected readonly me = inject(MeStore);
+
+  /** Drives the "log out?" confirmation dialog. */
+  protected readonly confirmLogout = signal(false);
 
   /** Humanized role, e.g. `field_officer` → "Field Officer". */
   protected readonly roleLabel = computed(() => {
@@ -64,7 +76,8 @@ export class ProfilePage {
     void this.router.navigateByUrl('/field-officer/profile/edit');
   }
 
-  protected logout(): void {
+  protected confirmLogoutAndSignOut(): void {
+    this.confirmLogout.set(false);
     this.auth.logout();
     void this.router.navigateByUrl('/');
   }
