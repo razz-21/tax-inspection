@@ -16,6 +16,7 @@ import { getDb } from '../../config/database';
 
 interface DeliveryDoc {
   _id: string;
+  created_by: string;
   haulers: Hauler;
   truck: Truck;
   materials: Materials;
@@ -40,6 +41,7 @@ const toIso = (value: unknown): string =>
 function toDomain(doc: DeliveryDoc): Delivery {
   return {
     id: typeof doc._id === 'string' ? doc._id : String(doc._id),
+    created_by: doc.created_by,
     haulers: doc.haulers,
     truck: doc.truck,
     materials: doc.materials,
@@ -103,10 +105,11 @@ export const deliveriesService = {
     return doc ? toDomain(doc) : null;
   },
 
-  async create(input: PostDelivery): Promise<Delivery> {
+  async create(input: PostDelivery, createdBy: string): Promise<Delivery> {
     const timestamp = nowIso();
     const doc: DeliveryDoc = {
       _id: newId(),
+      created_by: createdBy,
       haulers: input.haulers,
       truck: input.truck,
       materials: input.materials,

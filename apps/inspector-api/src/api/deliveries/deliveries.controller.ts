@@ -1,5 +1,6 @@
 import type { Context } from 'hono';
 import type {
+  AccessTokenClaims,
   DeleteDelivery,
   GetDeliveries,
   GetDelivery,
@@ -22,7 +23,12 @@ export const deliveriesController = {
   },
 
   async create(c: Context, body: PostDelivery) {
-    const delivery = await deliveriesService.create(body);
+    // Set by requireAuth from the verified access token.
+    const claims = c.get('user') as AccessTokenClaims | undefined;
+    if (!claims?.sub) {
+      return c.json({ error: 'Unauthenticated' }, 401);
+    }
+    const delivery = await deliveriesService.create(body, claims.sub);
     return c.json(delivery, 201);
   },
 

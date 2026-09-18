@@ -9,9 +9,10 @@ import type { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { apply, form, submit } from '@angular/forms/signals';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowLeft } from '@ng-icons/lucide';
+import { lucideArrowLeft, lucideInfo } from '@ng-icons/lucide';
 import { toast } from '@spartan-ng/brain/sonner';
 import { BrnAlertDialogContent } from '@spartan-ng/brain/alert-dialog';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import type {
@@ -77,6 +78,7 @@ function formatDate(date: Date | null): string {
     RouterLink,
     NgIcon,
     BrnAlertDialogContent,
+    HlmAlertImports,
     HlmAlertDialogImports,
     HlmButtonImports,
     HaulersForm,
@@ -84,7 +86,7 @@ function formatDate(date: Date | null): string {
     MaterialsForm,
     DeliveryDetailsForm,
   ],
-  providers: [provideIcons({ lucideArrowLeft })],
+  providers: [provideIcons({ lucideArrowLeft, lucideInfo })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './create-delivery.page.html',
 })

@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
   hello: `${API_PREFIX}/hello`,
   inspections: `${API_PREFIX}/inspections`,
   deliveries: `${API_PREFIX}/deliveries`,
+  deliveryInspections: `${API_PREFIX}/delivery-inspections`,
   users: `${API_PREFIX}/users`,
   login: `${API_PREFIX}/users/login`,
   refresh: `${API_PREFIX}/users/refresh`,

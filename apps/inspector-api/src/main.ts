@@ -14,6 +14,7 @@ import { requestId } from './middleware/request-id';
 import { inspectionsRoutes } from './api/inspections/inspections.routes';
 import { usersRoutes } from './api/users/users.routes';
 import { deliveriesRoutes } from './api/deliveries/deliveries.routes';
+import { deliveryInspectionsRoutes } from './api/delivery-inspections/delivery-inspections.routes';
 
 const app = new Hono();
 
@@ -44,6 +45,7 @@ app.get(`${API_PREFIX}/hello`, (c) => {
 app.route(`${API_PREFIX}/inspections`, inspectionsRoutes);
 app.route(`${API_PREFIX}/users`, usersRoutes);
 app.route(`${API_PREFIX}/deliveries`, deliveriesRoutes);
+app.route(`${API_PREFIX}/delivery-inspections`, deliveryInspectionsRoutes);
 
 async function bootstrap() {
   await connectToDatabase();

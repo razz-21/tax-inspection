@@ -12,11 +12,13 @@ import {
 } from './deliveries.model';
 
 /**
- * POST /deliveries — create body. The server generates `id` (a UUID) and the
- * `createdAt`/`updatedAt` timestamps.
+ * POST /deliveries — create body. The server generates `id` (a UUID), sets
+ * `created_by` from the authenticated user, and the `createdAt`/`updatedAt`
+ * timestamps.
  */
 export const postDeliverySchema = deliverySchema.omit({
   id: true,
+  created_by: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -24,7 +26,7 @@ export type PostDelivery = z.infer<typeof postDeliverySchema>;
 
 /** PATCH /deliveries/:id — partial update. `id` comes from the route. */
 export const patchDeliverySchema = deliverySchema
-  .omit({ id: true, createdAt: true, updatedAt: true })
+  .omit({ id: true, created_by: true, createdAt: true, updatedAt: true })
   .partial();
 export type PatchDelivery = z.infer<typeof patchDeliverySchema>;
 

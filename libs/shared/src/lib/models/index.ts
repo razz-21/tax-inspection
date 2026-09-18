@@ -13,3 +13,7 @@ export * from './inspections/inspections.actions';
 // Entity: deliveries
 export * from './deliveries/deliveries.model';
 export * from './deliveries/deliveries.actions';
+
+// Entity: delivery-inspections
+export * from './delivery-inspections/delivery-inspections.model';
+export * from './delivery-inspections/delivery-inspections.actions';

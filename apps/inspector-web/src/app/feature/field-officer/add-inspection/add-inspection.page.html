@@ -1,0 +1,123 @@
+<header
+  class="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4"
+>
+  <a
+    [routerLink]="['/field-officer/deliveries', deliveryId]"
+    class="-ml-1 flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
+    aria-label="Back"
+  >
+    <ng-icon name="lucideArrowLeft" size="1.25rem" />
+  </a>
+  <h1 class="text-lg font-semibold">Add Inspection</h1>
+</header>
+
+<div class="p-4">
+  <div class="space-y-1">
+    <h2 class="text-xl font-bold tracking-tight">Record inspection</h2>
+    <p class="text-sm text-muted-foreground">
+      Capture the measured volume against the allowed volume for this delivery.
+    </p>
+  </div>
+
+  <form class="mt-6 space-y-4" (submit)="$event.preventDefault(); onSubmit()">
+    @let inspectionDate = inspectionForm.inspectionDate();
+    @let actualVolume = inspectionForm.actualVolume();
+    @let allowedVolume = inspectionForm.allowedVolume();
+
+    <!-- Inspection Date -->
+    <div class="space-y-2">
+      <label
+        hlmLabel
+        for="inspection-date"
+        [class.text-destructive]="inspectionDate.touched() && inspectionDate.invalid()"
+      >
+        Inspection date
+      </label>
+      <hlm-date-picker
+        autoCloseOnSelect
+        [date]="inspectionDate.value() ?? undefined"
+        (dateChange)="selectDate($event)"
+      >
+        <hlm-date-picker-trigger buttonId="inspection-date" class="w-full">
+          Pick a date
+        </hlm-date-picker-trigger>
+      </hlm-date-picker>
+      @if (inspectionDate.touched() && inspectionDate.invalid()) {
+        <p class="text-sm text-destructive">
+          {{ inspectionDate.errors()[0]?.message }}
+        </p>
+      }
+    </div>
+
+    <!-- Actual Volume -->
+    <div class="space-y-2">
+      <label
+        hlmLabel
+        for="actual-volume"
+        [class.text-destructive]="actualVolume.touched() && actualVolume.invalid()"
+      >
+        Actual volume
+      </label>
+      <input
+        hlmInput
+        id="actual-volume"
+        type="number"
+        step="any"
+        inputmode="decimal"
+        class="w-full"
+        [formField]="inspectionForm.actualVolume"
+        [forceInvalid]="actualVolume.touched() && actualVolume.invalid()"
+      />
+      @if (actualVolume.touched() && actualVolume.invalid()) {
+        <p class="text-sm text-destructive">
+          {{ actualVolume.errors()[0]?.message }}
+        </p>
+      }
+    </div>
+
+    <!-- Allowed Volume -->
+    <div class="space-y-2">
+      <label
+        hlmLabel
+        for="allowed-volume"
+        [class.text-destructive]="allowedVolume.touched() && allowedVolume.invalid()"
+      >
+        Allowed volume
+      </label>
+      <input
+        hlmInput
+        id="allowed-volume"
+        type="number"
+        step="any"
+        inputmode="decimal"
+        class="w-full"
+        [formField]="inspectionForm.allowedVolume"
+        [forceInvalid]="allowedVolume.touched() && allowedVolume.invalid()"
+      />
+      @if (allowedVolume.touched() && allowedVolume.invalid()) {
+        <p class="text-sm text-destructive">
+          {{ allowedVolume.errors()[0]?.message }}
+        </p>
+      }
+    </div>
+
+    <!-- Remarks (optional) -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <label hlmLabel for="inspection-remarks">Remarks</label>
+        <span class="text-sm text-muted-foreground">Optional</span>
+      </div>
+      <textarea
+        hlmInput
+        id="inspection-remarks"
+        rows="3"
+        class="min-h-20 w-full"
+        [formField]="inspectionForm.remarks"
+      ></textarea>
+    </div>
+
+    <button hlmBtn type="submit" class="w-full" [disabled]="submitting()">
+      {{ submitting() ? 'Saving…' : 'Save inspection' }}
+    </button>
+  </form>
+</div>

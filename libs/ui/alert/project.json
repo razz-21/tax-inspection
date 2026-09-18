@@ -1,0 +1,10 @@
+{
+  "name": "alert",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ui/alert/alert/src",
+  "prefix": "hlm",
+  "tags": [],
+  "projectType": "library",
+  "// targets": "to see all targets run: nx show project alert --web",
+  "targets": {}
+}

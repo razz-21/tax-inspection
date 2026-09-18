@@ -15,6 +15,15 @@
   (submit)="$event.preventDefault(); onSubmit()"
   class="space-y-6 p-4"
 >
+  <div hlmAlert>
+    <ng-icon name="lucideInfo" />
+    <h4 hlmAlertTitle>Double-check before submitting</h4>
+    <p hlmAlertDescription>
+      Please review all details carefully. Once submitted, this delivery record
+      will be created.
+    </p>
+  </div>
+
   <app-haulers-form [field]="deliveryForm.hauler" />
   <app-truck-details-form [field]="deliveryForm.truckDetails" />
   <app-materials-form [field]="deliveryForm.materials" />

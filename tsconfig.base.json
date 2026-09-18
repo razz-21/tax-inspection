@@ -84,6 +84,12 @@
       ],
       "@spartan-ng/helm/textarea": [
         "./libs/ui/textarea/src/index.ts"
+      ],
+      "@spartan-ng/helm/tabs": [
+        "./libs/ui/tabs/src/index.ts"
+      ],
+      "@spartan-ng/helm/alert": [
+        "./libs/ui/alert/src/index.ts"
       ]
     }
   },

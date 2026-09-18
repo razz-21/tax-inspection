@@ -45,6 +45,8 @@ export type Materials = z.infer<typeof materialsSchema>;
 /** Full delivery record. `id` is a UUID (maps to Mongo `_id`). */
 export const deliverySchema = z.object({
   id: z.uuid(),
+  /** FK to the user who created this delivery (set server-side from the token). */
+  created_by: z.uuid(),
   haulers: haulerSchema,
   truck: truckSchema,
   materials: materialsSchema,

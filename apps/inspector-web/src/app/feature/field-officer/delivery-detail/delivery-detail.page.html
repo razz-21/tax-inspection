@@ -23,14 +23,21 @@
     <button hlmBtn variant="outline" (click)="load()">Retry</button>
   </div>
 } @else if (delivery(); as d) {
-  <div class="space-y-6 p-4 pb-28">
-    <!-- Hauler -->
+  <hlm-tabs [tab]="activeTab" class="p-4 pb-28">
+    <hlm-tabs-list class="w-full !h-12 p-1.5" aria-label="Delivery sections">
+      <button hlmTabsTrigger="details" class="!py-2.5">Delivery Details</button>
+      <button hlmTabsTrigger="inspections" class="!py-2.5">Inspections</button>
+    </hlm-tabs-list>
+
+    <div hlmTabsContent="details" class="space-y-6 pt-4">
+      <!-- Hauler -->
     <app-section-card
       icon="lucideBuilding2"
       iconClass="bg-emerald-600 text-white"
       title="Hauler"
       subtitle="Company moving this load"
       [required]="false"
+      [collapsible]="true"
     >
       <dl class="divide-y">
         <div class="flex justify-between gap-3 py-2 text-sm">
@@ -57,6 +64,8 @@
       title="Truck details"
       subtitle="Driver and vehicle on the trip"
       [required]="false"
+      [collapsible]="true"
+      [startExpanded]="false"
     >
       <dl class="divide-y">
         <div class="flex justify-between gap-3 py-2 text-sm">
@@ -85,6 +94,8 @@
       title="Materials"
       subtitle="What's being delivered"
       [required]="false"
+      [collapsible]="true"
+      [startExpanded]="false"
     >
       <dl class="divide-y">
         <div class="flex justify-between gap-3 py-2 text-sm">
@@ -111,6 +122,8 @@
       title="Delivery details"
       subtitle="Where and when it arrives"
       [required]="false"
+      [collapsible]="true"
+      [startExpanded]="false"
     >
       <dl class="divide-y">
         <div class="flex justify-between gap-3 py-2 text-sm">
@@ -141,9 +154,97 @@
           <dt class="text-muted-foreground">Remarks</dt>
           <dd class="text-right font-medium">{{ d.remarks || '—' }}</dd>
         </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Created by</dt>
+          <dd class="text-right font-medium">{{ creator() ?? d.created_by }}</dd>
+        </div>
       </dl>
     </app-section-card>
-  </div>
+    </div>
+
+    <div hlmTabsContent="inspections" class="pt-4">
+      @if (inspectionsStore.loading()) {
+        <div class="space-y-4">
+          <div hlmSkeleton class="h-24 w-full rounded-xl"></div>
+          <div hlmSkeleton class="h-24 w-full rounded-xl"></div>
+        </div>
+      } @else if (inspectionsStore.entities().length === 0) {
+        <div class="flex flex-col items-center gap-3 px-4 py-12 text-center">
+          <span
+            class="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground"
+          >
+            <ng-icon name="lucideClipboardList" size="1.5rem" />
+          </span>
+          <p class="text-sm text-muted-foreground">
+            No inspections recorded for this delivery yet.
+          </p>
+        </div>
+      } @else {
+        <div class="space-y-3">
+          @for (inspection of inspectionsStore.entities(); track inspection.id) {
+            <div hlmCard class="p-0">
+              <div hlmCardContent class="!py-4">
+                <div class="flex items-center justify-between gap-3">
+                  <p class="text-sm font-semibold">
+                    {{ inspection.inspection_date }}
+                  </p>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide"
+                      [class]="
+                        inspection.actual_volume > inspection.allowed_volume
+                          ? 'bg-destructive/10 text-destructive'
+                          : 'bg-emerald-100 text-emerald-700'
+                      "
+                    >
+                      {{
+                        inspection.actual_volume > inspection.allowed_volume
+                          ? 'Over'
+                          : 'Within'
+                      }}
+                    </span>
+                    <button
+                      hlmBtn
+                      variant="ghost"
+                      size="icon"
+                      type="button"
+                      class="size-8 text-muted-foreground hover:text-destructive"
+                      aria-label="Delete inspection"
+                      (click)="askDelete(inspection)"
+                    >
+                      <ng-icon name="lucideTrash2" size="1.125rem" />
+                    </button>
+                  </div>
+                </div>
+                <dl class="mt-2 divide-y">
+                  <div class="flex justify-between gap-3 py-2 text-sm">
+                    <dt class="text-muted-foreground">Actual volume</dt>
+                    <dd class="text-right font-medium">
+                      {{ inspection.actual_volume }}
+                    </dd>
+                  </div>
+                  <div class="flex justify-between gap-3 py-2 text-sm">
+                    <dt class="text-muted-foreground">Allowed volume</dt>
+                    <dd class="text-right font-medium">
+                      {{ inspection.allowed_volume }}
+                    </dd>
+                  </div>
+                  @if (inspection.remarks) {
+                    <div class="flex justify-between gap-3 py-2 text-sm">
+                      <dt class="text-muted-foreground">Remarks</dt>
+                      <dd class="text-right font-medium">
+                        {{ inspection.remarks }}
+                      </dd>
+                    </div>
+                  }
+                </dl>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </hlm-tabs>
 
   <!-- FAB: anchored to the mobile column, above the bottom nav -->
   <div
@@ -157,4 +258,40 @@
       Add Inspection
     </a>
   </div>
+
+  <!-- Delete inspection confirmation -->
+  <hlm-alert-dialog
+    [state]="pendingDelete() ? 'open' : 'closed'"
+    (closed)="pendingDelete.set(null)"
+  >
+    <hlm-alert-dialog-content *brnAlertDialogContent>
+      <div hlmAlertDialogHeader>
+        <h3 hlmAlertDialogTitle>Delete inspection?</h3>
+        <p hlmAlertDialogDescription>
+          Are you sure you want to delete this inspection? This action cannot be
+          undone.
+        </p>
+      </div>
+      <div hlmAlertDialogFooter>
+        <button
+          hlmBtn
+          variant="secondary"
+          type="button"
+          [disabled]="deleting()"
+          (click)="pendingDelete.set(null)"
+        >
+          Cancel
+        </button>
+        <button
+          hlmBtn
+          variant="destructive"
+          type="button"
+          [disabled]="deleting()"
+          (click)="confirmDelete()"
+        >
+          {{ deleting() ? 'Deleting…' : 'Delete' }}
+        </button>
+      </div>
+    </hlm-alert-dialog-content>
+  </hlm-alert-dialog>
 }
