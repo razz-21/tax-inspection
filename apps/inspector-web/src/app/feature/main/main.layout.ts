@@ -8,6 +8,7 @@ import {
   lucideUsers,
 } from '@ng-icons/lucide';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
+import { Topbar } from '../../components/topbar/topbar';
 
 interface NavItem {
   label: string;
@@ -23,6 +24,7 @@ interface NavItem {
     RouterOutlet,
     NgIcon,
     HlmSidebarImports,
+    Topbar,
   ],
   providers: [
     provideIcons({
