@@ -1,0 +1,10 @@
+{
+  "name": "input-group",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ui/input-group/src",
+  "prefix": "hlm",
+  "tags": [],
+  "projectType": "library",
+  "// targets": "to see all targets run: nx show project input-group --web",
+  "targets": {}
+}

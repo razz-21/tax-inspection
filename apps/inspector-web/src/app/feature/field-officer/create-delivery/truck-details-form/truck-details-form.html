@@ -1,0 +1,108 @@
+<app-section-card
+  icon="lucideTruck"
+  iconClass="bg-slate-900 text-white"
+  title="Truck details"
+  subtitle="Driver and vehicle on the trip"
+>
+  @let truck = field();
+  @let driverField = truck.driverName();
+  @let licenseField = truck.licenseNumber();
+  @let plateField = truck.plateNumber();
+  @let typeField = truck.truckType();
+
+  <!-- Driver's name -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="driver-name"
+      [class.text-destructive]="driverField.touched() && driverField.invalid()"
+    >
+      Driver's name
+    </label>
+    <input
+      hlmInput
+      id="driver-name"
+      class="w-full"
+      placeholder="e.g. Juan dela Cruz"
+      [formField]="truck.driverName"
+      [forceInvalid]="driverField.touched() && driverField.invalid()"
+    />
+    @if (driverField.touched() && driverField.invalid()) {
+      <p class="text-sm text-destructive">{{ driverField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- License no. -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="license-number"
+      [class.text-destructive]="licenseField.touched() && licenseField.invalid()"
+    >
+      License no.
+    </label>
+    <input
+      hlmInput
+      id="license-number"
+      class="w-full"
+      placeholder="N01-23-456789"
+      [formField]="truck.licenseNumber"
+      [forceInvalid]="licenseField.touched() && licenseField.invalid()"
+    />
+    @if (licenseField.touched() && licenseField.invalid()) {
+      <p class="text-sm text-destructive">{{ licenseField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Plate no. -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="plate-number"
+      [class.text-destructive]="plateField.touched() && plateField.invalid()"
+    >
+      Plate no.
+    </label>
+    <input
+      hlmInput
+      id="plate-number"
+      class="w-full"
+      placeholder="ABC 1234"
+      [formField]="truck.plateNumber"
+      [forceInvalid]="plateField.touched() && plateField.invalid()"
+    />
+    @if (plateField.touched() && plateField.invalid()) {
+      <p class="text-sm text-destructive">{{ plateField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Truck type -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      [class.text-destructive]="typeField.touched() && typeField.invalid()"
+    >
+      Truck type
+    </label>
+    <div class="grid grid-cols-2 gap-2">
+      @for (type of truckTypes; track type) {
+        <button
+          type="button"
+          (click)="selectTruckType(type)"
+          class="flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition"
+          [class]="
+            typeField.value() === type
+              ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+              : 'border-input text-foreground hover:bg-accent'
+          "
+        >
+          <ng-icon name="lucideTruck" size="1.125rem" />
+          {{ type }}
+        </button>
+      }
+    </div>
+    @if (typeField.touched() && typeField.invalid()) {
+      <p class="text-sm text-destructive">{{ typeField.errors()[0]?.message }}</p>
+    }
+  </div>
+</app-section-card>

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -7,22 +14,27 @@ import {
   lucidePackage,
   lucidePlus,
 } from '@ng-icons/lucide';
-
-type DeliveryStatus = 'Pending' | 'In transit' | 'Delivered';
-
-interface Delivery {
-  id: string;
-  recipient: string;
-  address: string;
-  status: DeliveryStatus;
-}
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import type { Delivery } from '@tax-inspection/shared';
+import { DeliveriesService } from '../../../service/deliveries.service';
 
 /** Field officer's delivery list (mobile). */
 @Component({
   selector: 'app-deliveries-page',
-  imports: [RouterLink, NgIcon],
+  imports: [
+    RouterLink,
+    NgIcon,
+    HlmButtonImports,
+    HlmSkeletonImports,
+  ],
   providers: [
-    provideIcons({ lucidePackage, lucideMapPin, lucideChevronRight, lucidePlus }),
+    provideIcons({
+      lucidePackage,
+      lucideMapPin,
+      lucidePlus,
+      lucideChevronRight,
+    }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -32,45 +44,72 @@ interface Delivery {
       <h1 class="text-lg font-semibold">Deliveries</h1>
     </header>
 
-    <ul class="divide-y">
-      @for (delivery of deliveries; track delivery.id) {
-        <li class="flex items-center gap-3 px-4 py-3">
-          <span
-            class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
-          >
-            <ng-icon name="lucidePackage" size="1.25rem" />
-          </span>
-
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center justify-between gap-2">
-              <p class="truncate font-medium">{{ delivery.recipient }}</p>
-              <span
-                class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
-                [class]="statusClass(delivery.status)"
-              >
-                {{ delivery.status }}
-              </span>
+    @if (loading()) {
+      <ul class="divide-y">
+        @for (row of [1, 2, 3, 4]; track row) {
+          <li class="flex items-center gap-3 px-4 py-3">
+            <div hlmSkeleton class="size-10 shrink-0 rounded-full"></div>
+            <div class="flex-1 space-y-2">
+              <div hlmSkeleton class="h-4 w-1/2"></div>
+              <div hlmSkeleton class="h-3 w-3/4"></div>
             </div>
-            <p
-              class="mt-0.5 flex items-center gap-1 truncate text-sm text-muted-foreground"
+          </li>
+        }
+      </ul>
+    } @else if (error()) {
+      <div class="flex flex-col items-center gap-3 px-4 py-12 text-center">
+        <p class="text-sm text-muted-foreground">{{ error() }}</p>
+        <button hlmBtn variant="outline" (click)="load()">Retry</button>
+      </div>
+    } @else {
+      <ul class="divide-y">
+        @for (delivery of deliveries(); track delivery.id) {
+          <li>
+            <a
+              [routerLink]="['/field-officer/deliveries', delivery.id]"
+              class="flex items-center gap-3 px-4 py-3 transition hover:bg-accent"
             >
-              <ng-icon name="lucideMapPin" size="0.875rem" />
-              {{ delivery.address }}
-            </p>
-          </div>
+              <span
+                class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
+              >
+                <ng-icon name="lucidePackage" size="1.25rem" />
+              </span>
 
-          <ng-icon
-            name="lucideChevronRight"
-            size="1.125rem"
-            class="shrink-0 text-muted-foreground"
-          />
-        </li>
-      } @empty {
-        <li class="px-4 py-10 text-center text-sm text-muted-foreground">
-          No deliveries assigned.
-        </li>
-      }
-    </ul>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <p class="truncate font-medium">{{ delivery.haulers.name }}</p>
+                  <span
+                    class="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                  >
+                    {{ delivery.materials.material_type }}
+                  </span>
+                </div>
+                <p
+                  class="mt-0.5 flex items-center gap-1 truncate text-sm text-muted-foreground"
+                >
+                  <ng-icon name="lucideMapPin" size="0.875rem" />
+                  {{ delivery.place_of_deliveries }}
+                </p>
+                <p class="mt-0.5 truncate text-xs text-muted-foreground">
+                  {{ delivery.date }} · {{ delivery.time }} · Qty
+                  {{ delivery.quantity }}
+                </p>
+              </div>
+
+              <ng-icon
+                name="lucideChevronRight"
+                size="1.125rem"
+                class="shrink-0 text-muted-foreground"
+              />
+            </a>
+          </li>
+        } @empty {
+          <li class="px-4 py-12 text-center text-sm text-muted-foreground">
+            No deliveries yet. Tap + to create one.
+          </li>
+        }
+      </ul>
+    }
 
     <!-- FAB: anchored to the mobile column, above the bottom nav -->
     <div
@@ -87,35 +126,32 @@ interface Delivery {
   `,
 })
 export class DeliveriesPage {
-  protected readonly deliveries: Delivery[] = [
-    {
-      id: 'DLV-1001',
-      recipient: 'Acme Retail Co.',
-      address: '12 Market St, Downtown',
-      status: 'Pending',
-    },
-    {
-      id: 'DLV-1002',
-      recipient: 'Bright Foods Ltd.',
-      address: '48 Harbor Ave, Eastside',
-      status: 'In transit',
-    },
-    {
-      id: 'DLV-1003',
-      recipient: 'Green Grocers',
-      address: '7 Oak Lane, Uptown',
-      status: 'Delivered',
-    },
-  ];
+  private readonly service = inject(DeliveriesService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  protected statusClass(status: DeliveryStatus): string {
-    switch (status) {
-      case 'Delivered':
-        return 'bg-green-100 text-green-700';
-      case 'In transit':
-        return 'bg-blue-100 text-blue-700';
-      default:
-        return 'bg-amber-100 text-amber-700';
-    }
+  protected readonly deliveries = signal<Delivery[]>([]);
+  protected readonly loading = signal(true);
+  protected readonly error = signal<string | null>(null);
+
+  constructor() {
+    this.load();
+  }
+
+  protected load(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.service
+      .list({ limit: 50, sortBy: 'created_at', sortOrder: 'desc' })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.deliveries.set(res.data);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.error.set('Failed to load deliveries.');
+          this.loading.set(false);
+        },
+      });
   }
 }

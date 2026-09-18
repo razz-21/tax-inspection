@@ -1,0 +1,89 @@
+<app-section-card
+  icon="lucideBoxes"
+  iconClass="bg-amber-500 text-white"
+  title="Materials"
+  subtitle="What's being delivered"
+>
+  @let materials = field();
+  @let sourceField = materials.source();
+  @let typeField = materials.materialType();
+  @let unitField = materials.unit();
+
+  <!-- Source of Material -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="material-source"
+      [class.text-destructive]="sourceField.touched() && sourceField.invalid()"
+    >
+      Source of material
+    </label>
+    <input
+      hlmInput
+      id="material-source"
+      class="w-full"
+      placeholder="e.g. Rizal Quarry"
+      [formField]="materials.source"
+      [forceInvalid]="sourceField.touched() && sourceField.invalid()"
+    />
+    @if (sourceField.touched() && sourceField.invalid()) {
+      <p class="text-sm text-destructive">{{ sourceField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Material type -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      [class.text-destructive]="typeField.touched() && typeField.invalid()"
+    >
+      Material type
+    </label>
+    <div class="grid grid-cols-2 gap-2">
+      @for (type of materialTypes; track type) {
+        <button
+          type="button"
+          (click)="selectMaterialType(type)"
+          class="flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition"
+          [class]="
+            typeField.value() === type
+              ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+              : 'border-input text-foreground hover:bg-accent'
+          "
+        >
+          <ng-icon name="lucideMountain" size="1.125rem" />
+          {{ type }}
+        </button>
+      }
+    </div>
+    @if (typeField.touched() && typeField.invalid()) {
+      <p class="text-sm text-destructive">{{ typeField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Unit -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="material-unit"
+      [class.text-destructive]="unitField.touched() && unitField.invalid()"
+    >
+      Unit
+    </label>
+    <hlm-select [value]="unitField.value()" (valueChange)="setUnit($event)">
+      <hlm-select-trigger id="material-unit" class="w-full!">
+        <hlm-select-value placeholder="Select unit" />
+      </hlm-select-trigger>
+      <hlm-select-content *hlmSelectPortal>
+        <hlm-select-group>
+          @for (unit of units; track unit) {
+            <hlm-select-item [value]="unit">{{ unit }}</hlm-select-item>
+          }
+        </hlm-select-group>
+      </hlm-select-content>
+    </hlm-select>
+    @if (unitField.touched() && unitField.invalid()) {
+      <p class="text-sm text-destructive">{{ unitField.errors()[0]?.message }}</p>
+    }
+  </div>
+</app-section-card>

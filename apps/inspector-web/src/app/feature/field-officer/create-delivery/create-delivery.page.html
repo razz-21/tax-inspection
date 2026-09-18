@@ -1,0 +1,61 @@
+<header
+  class="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4"
+>
+  <a
+    routerLink="/field-officer/deliveries"
+    class="-ml-1 flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
+    aria-label="Back"
+  >
+    <ng-icon name="lucideArrowLeft" size="1.25rem" />
+  </a>
+  <h1 class="text-lg font-semibold">Create Delivery</h1>
+</header>
+
+<form
+  (submit)="$event.preventDefault(); onSubmit()"
+  class="space-y-6 p-4"
+>
+  <app-haulers-form [field]="deliveryForm.hauler" />
+  <app-truck-details-form [field]="deliveryForm.truckDetails" />
+  <app-materials-form [field]="deliveryForm.materials" />
+  <app-delivery-details-form [field]="deliveryForm.deliveryDetails" />
+
+  <!-- Actions -->
+  <div class="flex gap-3 pt-2">
+    <a
+      hlmBtn
+      variant="outline"
+      class="flex-1"
+      routerLink="/field-officer/deliveries"
+    >
+      Cancel
+    </a>
+    <button hlmBtn type="submit" class="flex-1" [disabled]="submitting()">
+      {{ submitting() ? 'Creating…' : 'Create delivery' }}
+    </button>
+  </div>
+</form>
+
+<!-- Create confirmation -->
+<hlm-alert-dialog
+  [state]="confirmOpen() ? 'open' : 'closed'"
+  (closed)="confirmOpen.set(false)"
+>
+  <hlm-alert-dialog-content *brnAlertDialogContent>
+    <div hlmAlertDialogHeader>
+      <h3 hlmAlertDialogTitle>Create delivery?</h3>
+      <p hlmAlertDialogDescription>
+        Please confirm the details are correct. This will create a new delivery
+        record.
+      </p>
+    </div>
+    <div hlmAlertDialogFooter>
+      <button hlmBtn variant="secondary" type="button" (click)="confirmOpen.set(false)">
+        Cancel
+      </button>
+      <button hlmBtn type="button" (click)="confirmCreate()">
+        Create delivery
+      </button>
+    </div>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

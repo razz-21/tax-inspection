@@ -9,3 +9,7 @@ export * from './users/users.actions';
 // Entity: inspections
 export * from './inspections/inspections.model';
 export * from './inspections/inspections.actions';
+
+// Entity: deliveries
+export * from './deliveries/deliveries.model';
+export * from './deliveries/deliveries.actions';

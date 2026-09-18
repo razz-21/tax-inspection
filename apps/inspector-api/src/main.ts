@@ -13,6 +13,7 @@ import { errorHandler } from './middleware/error-handler';
 import { requestId } from './middleware/request-id';
 import { inspectionsRoutes } from './api/inspections/inspections.routes';
 import { usersRoutes } from './api/users/users.routes';
+import { deliveriesRoutes } from './api/deliveries/deliveries.routes';
 
 const app = new Hono();
 
@@ -42,6 +43,7 @@ app.get(`${API_PREFIX}/hello`, (c) => {
 // --- entity APIs ---
 app.route(`${API_PREFIX}/inspections`, inspectionsRoutes);
 app.route(`${API_PREFIX}/users`, usersRoutes);
+app.route(`${API_PREFIX}/deliveries`, deliveriesRoutes);
 
 async function bootstrap() {
   await connectToDatabase();

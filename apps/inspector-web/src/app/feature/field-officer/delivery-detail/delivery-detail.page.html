@@ -1,0 +1,160 @@
+<header
+  class="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4"
+>
+  <a
+    routerLink="/field-officer/deliveries"
+    class="-ml-1 flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
+    aria-label="Back"
+  >
+    <ng-icon name="lucideArrowLeft" size="1.25rem" />
+  </a>
+  <h1 class="text-lg font-semibold">Delivery</h1>
+</header>
+
+@if (loading()) {
+  <div class="space-y-4 p-4">
+    <div hlmSkeleton class="h-28 w-full rounded-xl"></div>
+    <div hlmSkeleton class="h-40 w-full rounded-xl"></div>
+    <div hlmSkeleton class="h-40 w-full rounded-xl"></div>
+  </div>
+} @else if (error()) {
+  <div class="flex flex-col items-center gap-3 px-4 py-12 text-center">
+    <p class="text-sm text-muted-foreground">{{ error() }}</p>
+    <button hlmBtn variant="outline" (click)="load()">Retry</button>
+  </div>
+} @else if (delivery(); as d) {
+  <div class="space-y-6 p-4 pb-28">
+    <!-- Hauler -->
+    <app-section-card
+      icon="lucideBuilding2"
+      iconClass="bg-emerald-600 text-white"
+      title="Hauler"
+      subtitle="Company moving this load"
+      [required]="false"
+    >
+      <dl class="divide-y">
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Name</dt>
+          <dd class="text-right font-medium">{{ d.haulers.name }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Address</dt>
+          <dd class="text-right font-medium">{{ d.haulers.address }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Contact number</dt>
+          <dd class="text-right font-medium">
+            {{ d.haulers.contact_number || '—' }}
+          </dd>
+        </div>
+      </dl>
+    </app-section-card>
+
+    <!-- Truck details -->
+    <app-section-card
+      icon="lucideTruck"
+      iconClass="bg-slate-900 text-white"
+      title="Truck details"
+      subtitle="Driver and vehicle on the trip"
+      [required]="false"
+    >
+      <dl class="divide-y">
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Driver's name</dt>
+          <dd class="text-right font-medium">{{ d.truck.drivers_name }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">License no.</dt>
+          <dd class="text-right font-medium">{{ d.truck.license_number }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Plate no.</dt>
+          <dd class="text-right font-medium">{{ d.truck.plate_number }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Truck type</dt>
+          <dd class="text-right font-medium">{{ d.truck.truck_type }}</dd>
+        </div>
+      </dl>
+    </app-section-card>
+
+    <!-- Materials -->
+    <app-section-card
+      icon="lucideBoxes"
+      iconClass="bg-amber-500 text-white"
+      title="Materials"
+      subtitle="What's being delivered"
+      [required]="false"
+    >
+      <dl class="divide-y">
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Source of material</dt>
+          <dd class="text-right font-medium">
+            {{ d.materials.source_of_material }}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Material type</dt>
+          <dd class="text-right font-medium">{{ d.materials.material_type }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Unit</dt>
+          <dd class="text-right font-medium">{{ d.materials.unit }}</dd>
+        </div>
+      </dl>
+    </app-section-card>
+
+    <!-- Delivery details -->
+    <app-section-card
+      icon="lucidePackageCheck"
+      iconClass="bg-blue-600 text-white"
+      title="Delivery details"
+      subtitle="Where and when it arrives"
+      [required]="false"
+    >
+      <dl class="divide-y">
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Address</dt>
+          <dd class="text-right font-medium">{{ d.address }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Date</dt>
+          <dd class="text-right font-medium">{{ d.date }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Time</dt>
+          <dd class="text-right font-medium">{{ d.time }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Place of delivery</dt>
+          <dd class="text-right font-medium">{{ d.place_of_deliveries }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Quantity</dt>
+          <dd class="text-right font-medium">{{ d.quantity }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Receipt number</dt>
+          <dd class="text-right font-medium">{{ d.receipt_number }}</dd>
+        </div>
+        <div class="flex justify-between gap-3 py-2 text-sm">
+          <dt class="text-muted-foreground">Remarks</dt>
+          <dd class="text-right font-medium">{{ d.remarks || '—' }}</dd>
+        </div>
+      </dl>
+    </app-section-card>
+  </div>
+
+  <!-- FAB: anchored to the mobile column, above the bottom nav -->
+  <div
+    class="pointer-events-none fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md"
+  >
+    <a
+      [routerLink]="['/field-officer/deliveries', d.id, 'add-inspection']"
+      class="pointer-events-auto absolute bottom-20 right-4 flex items-center gap-2 rounded-full bg-primary px-5 py-3.5 text-sm font-medium text-primary-foreground shadow-lg transition hover:opacity-90"
+    >
+      <ng-icon name="lucidePlus" size="1.25rem" />
+      Add Inspection
+    </a>
+  </div>
+}

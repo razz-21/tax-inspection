@@ -43,6 +43,20 @@ export const appRoutes: Route[] = [
             './feature/field-officer/create-delivery/create-delivery.page'
           ).then((m) => m.CreateDeliveryPage),
       },
+      {
+        path: 'deliveries/:id',
+        loadComponent: () =>
+          import(
+            './feature/field-officer/delivery-detail/delivery-detail.page'
+          ).then((m) => m.DeliveryDetailPage),
+      },
+      {
+        path: 'deliveries/:id/add-inspection',
+        loadComponent: () =>
+          import(
+            './feature/field-officer/add-inspection/add-inspection.page'
+          ).then((m) => m.AddInspectionPage),
+      },
     ],
   },
   {

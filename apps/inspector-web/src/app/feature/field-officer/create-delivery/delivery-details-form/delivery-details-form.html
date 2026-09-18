@@ -1,0 +1,193 @@
+<app-section-card
+  icon="lucidePackageCheck"
+  iconClass="bg-blue-600 text-white"
+  title="Delivery details"
+  subtitle="Where and when it arrives"
+>
+  @let delivery = field();
+  @let addressField = delivery.address();
+  @let dateField = delivery.date();
+  @let timeField = delivery.time();
+  @let meridiemField = delivery.meridiem();
+  @let placeField = delivery.placeOfDelivery();
+  @let quantityField = delivery.quantity();
+  @let receiptField = delivery.receiptNumber();
+
+  <!-- Address -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="delivery-address"
+      [class.text-destructive]="addressField.touched() && addressField.invalid()"
+    >
+      Address
+    </label>
+    <div class="relative">
+      <input
+        hlmInput
+        id="delivery-address"
+        class="w-full pr-10"
+        placeholder="Barangay, City, Province"
+        [formField]="delivery.address"
+        [forceInvalid]="addressField.touched() && addressField.invalid()"
+      />
+      <ng-icon
+        name="lucideMapPin"
+        size="1.125rem"
+        class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-blue-600"
+      />
+    </div>
+    @if (addressField.touched() && addressField.invalid()) {
+      <p class="text-sm text-destructive">{{ addressField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Date -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="delivery-date"
+      [class.text-destructive]="dateField.touched() && dateField.invalid()"
+    >
+      Date
+    </label>
+    <hlm-date-picker
+      autoCloseOnSelect
+      [date]="dateField.value() ?? undefined"
+      (dateChange)="selectDate($event)"
+    >
+      <hlm-date-picker-trigger buttonId="delivery-date" class="w-full">
+        Pick a date
+      </hlm-date-picker-trigger>
+    </hlm-date-picker>
+    @if (dateField.touched() && dateField.invalid()) {
+      <p class="text-sm text-destructive">{{ dateField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Time (with AM/PM) -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="delivery-time"
+      [class.text-destructive]="
+        (timeField.touched() && timeField.invalid()) ||
+        (meridiemField.touched() && meridiemField.invalid())
+      "
+    >
+      Time
+    </label>
+    <div class="flex gap-2">
+      <input
+        hlmInput
+        id="delivery-time"
+        inputmode="numeric"
+        class="flex-1"
+        placeholder="hh:mm"
+        [formField]="delivery.time"
+        [forceInvalid]="timeField.touched() && timeField.invalid()"
+      />
+      <div class="grid grid-cols-2 gap-2">
+        @for (m of meridiems; track m) {
+          <button
+            type="button"
+            (click)="selectMeridiem(m)"
+            class="rounded-lg border px-4 text-sm font-medium transition"
+            [class]="
+              meridiemField.value() === m
+                ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                : 'border-input text-foreground hover:bg-accent'
+            "
+          >
+            {{ m }}
+          </button>
+        }
+      </div>
+    </div>
+    @if (timeField.touched() && timeField.invalid()) {
+      <p class="text-sm text-destructive">{{ timeField.errors()[0]?.message }}</p>
+    } @else if (meridiemField.touched() && meridiemField.invalid()) {
+      <p class="text-sm text-destructive">{{ meridiemField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Place of Delivery -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="delivery-place"
+      [class.text-destructive]="placeField.touched() && placeField.invalid()"
+    >
+      Place of delivery
+    </label>
+    <input
+      hlmInput
+      id="delivery-place"
+      class="w-full"
+      [formField]="delivery.placeOfDelivery"
+      [forceInvalid]="placeField.touched() && placeField.invalid()"
+    />
+    @if (placeField.touched() && placeField.invalid()) {
+      <p class="text-sm text-destructive">{{ placeField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Quantity -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="delivery-quantity"
+      [class.text-destructive]="quantityField.touched() && quantityField.invalid()"
+    >
+      Quantity
+    </label>
+    <input
+      hlmInput
+      id="delivery-quantity"
+      type="number"
+      inputmode="decimal"
+      class="w-full"
+      [formField]="delivery.quantity"
+      [forceInvalid]="quantityField.touched() && quantityField.invalid()"
+    />
+    @if (quantityField.touched() && quantityField.invalid()) {
+      <p class="text-sm text-destructive">{{ quantityField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Receipt Number -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="delivery-receipt"
+      [class.text-destructive]="receiptField.touched() && receiptField.invalid()"
+    >
+      Receipt number
+    </label>
+    <input
+      hlmInput
+      id="delivery-receipt"
+      class="w-full"
+      [formField]="delivery.receiptNumber"
+      [forceInvalid]="receiptField.touched() && receiptField.invalid()"
+    />
+    @if (receiptField.touched() && receiptField.invalid()) {
+      <p class="text-sm text-destructive">{{ receiptField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Remarks (optional) -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between">
+      <label hlmLabel for="delivery-remarks">Remarks</label>
+      <span class="text-sm text-muted-foreground">Optional</span>
+    </div>
+    <textarea
+      hlmInput
+      id="delivery-remarks"
+      rows="3"
+      class="min-h-20 w-full"
+      [formField]="delivery.remarks"
+    ></textarea>
+  </div>
+</app-section-card>

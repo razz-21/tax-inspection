@@ -69,6 +69,21 @@
       ],
       "@spartan-ng/helm/avatar": [
         "./libs/ui/avatar/src/index.ts"
+      ],
+      "@spartan-ng/helm/date-picker": [
+        "./libs/ui/date-picker/src/index.ts"
+      ],
+      "@spartan-ng/helm/calendar": [
+        "./libs/ui/calendar/src/index.ts"
+      ],
+      "@spartan-ng/helm/popover": [
+        "./libs/ui/popover/src/index.ts"
+      ],
+      "@spartan-ng/helm/input-group": [
+        "./libs/ui/input-group/src/index.ts"
+      ],
+      "@spartan-ng/helm/textarea": [
+        "./libs/ui/textarea/src/index.ts"
       ]
     }
   },

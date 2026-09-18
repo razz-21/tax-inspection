@@ -1,0 +1,86 @@
+<app-section-card
+  icon="lucideBuilding2"
+  iconClass="bg-emerald-600 text-white"
+  title="Hauler"
+  subtitle="Company moving this load"
+>
+  @let hauler = field();
+  @let nameField = hauler.name();
+  @let addressField = hauler.address();
+
+  <!-- Hauler's name -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="hauler-name"
+      [class.text-destructive]="nameField.touched() && nameField.invalid()"
+    >
+      Hauler's name
+    </label>
+    <input
+      hlmInput
+      id="hauler-name"
+      class="w-full"
+      placeholder="e.g. Acme Logistics"
+      [formField]="hauler.name"
+      [forceInvalid]="nameField.touched() && nameField.invalid()"
+    />
+    @if (nameField.touched() && nameField.invalid()) {
+      <p class="text-sm text-destructive">{{ nameField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Address -->
+  <div class="space-y-2">
+    <label
+      hlmLabel
+      for="hauler-address"
+      [class.text-destructive]="addressField.touched() && addressField.invalid()"
+    >
+      Address
+    </label>
+    <div class="relative">
+      <input
+        hlmInput
+        id="hauler-address"
+        class="w-full pr-10"
+        placeholder="Barangay, City, Province"
+        [formField]="hauler.address"
+        [forceInvalid]="addressField.touched() && addressField.invalid()"
+      />
+      <ng-icon
+        name="lucideMapPin"
+        size="1.125rem"
+        class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600"
+      />
+    </div>
+    @if (addressField.touched() && addressField.invalid()) {
+      <p class="text-sm text-destructive">{{ addressField.errors()[0]?.message }}</p>
+    }
+  </div>
+
+  <!-- Contact number (optional) -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between">
+      <label hlmLabel for="hauler-contact">Contact number</label>
+      <span class="text-sm text-muted-foreground">Optional</span>
+    </div>
+    <div
+      class="flex items-stretch overflow-hidden rounded-md border border-input bg-muted/40 focus-within:ring-1 focus-within:ring-ring"
+    >
+      <span
+        class="flex items-center border-r border-input px-3 text-sm text-muted-foreground"
+      >
+        +63
+      </span>
+      <input
+        hlmInput
+        id="hauler-contact"
+        type="tel"
+        class="w-full border-0 bg-transparent shadow-none focus-visible:ring-0"
+        placeholder="9XX XXX XXXX"
+        [formField]="hauler.contactNumber"
+      />
+    </div>
+  </div>
+</app-section-card>

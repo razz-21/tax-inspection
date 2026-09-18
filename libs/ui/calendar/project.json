@@ -1,0 +1,10 @@
+{
+  "name": "calendar",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ui/calendar/src",
+  "prefix": "hlm",
+  "tags": [],
+  "projectType": "library",
+  "// targets": "to see all targets run: nx show project calendar --web",
+  "targets": {}
+}
