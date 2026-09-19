@@ -9,7 +9,9 @@
     "dev:api": "nx serve inspector-api",
     "build": "nx run-many -t build -p inspector-web inspector-api",
     "build:web": "nx build inspector-web",
-    "build:api": "nx build inspector-api"
+    "build:api": "nx build inspector-api",
+    "build:api:vercel": "esbuild apps/inspector-api/src/app.ts --bundle --platform=node --format=esm --packages=external --alias:@tax-inspection/shared=./libs/shared/src/index.ts --outfile=dist/inspector-api-vercel/app.mjs",
+    "vercel-build": "nx build inspector-web --configuration=production && npm run build:api:vercel"
   },
   "private": true,
   "devDependencies": {
