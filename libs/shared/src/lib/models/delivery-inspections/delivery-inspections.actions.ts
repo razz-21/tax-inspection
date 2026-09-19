@@ -17,6 +17,7 @@ import {
 export const postDeliveryInspectionSchema = deliveryInspectionSchema.omit({
   id: true,
   user_id: true,
+  inspector: true,
   createdAt: true,
 });
 export type PostDeliveryInspection = z.infer<

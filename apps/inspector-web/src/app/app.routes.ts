@@ -106,6 +106,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'deliveries/:id',
+        loadComponent: () =>
+          import('./feature/delivery-details/delivery-details.page').then(
+            (m) => m.DeliveryDetailsPage,
+          ),
+      },
+      {
         path: 'user-management',
         loadComponent: () =>
           import('./feature/user-management/user-management.page').then(

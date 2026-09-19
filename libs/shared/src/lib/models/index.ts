@@ -17,3 +17,7 @@ export * from './deliveries/deliveries.actions';
 // Entity: delivery-inspections
 export * from './delivery-inspections/delivery-inspections.model';
 export * from './delivery-inspections/delivery-inspections.actions';
+
+// Entity: tax-assessments
+export * from './tax-assessments/tax-assessment.model';
+export * from './tax-assessments/tax-assessment.actions';

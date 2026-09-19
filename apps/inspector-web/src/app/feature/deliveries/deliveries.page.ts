@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, skip } from 'rxjs';
 import { Dispatcher } from '@ngrx/signals/events';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -54,6 +55,7 @@ import { deliveriesPageEvents } from '../../store/deliveries/deliveries.events';
 })
 export class DeliveriesPage implements OnInit {
   private readonly dispatcher = inject(Dispatcher);
+  private readonly router = inject(Router);
   protected readonly store = inject(DeliveriesStore);
   protected readonly search = signal('');
 
@@ -81,6 +83,10 @@ export class DeliveriesPage implements OnInit {
 
   protected reload(): void {
     this.dispatcher.dispatch(deliveriesPageEvents.reloaded());
+  }
+
+  protected openDetail(id: string): void {
+    void this.router.navigate(['/main/deliveries', id]);
   }
 
   /** Page numbers (with '...') to display, based on the current meta. */

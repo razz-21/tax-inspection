@@ -85,7 +85,10 @@
             }
           } @else {
           @for (delivery of store.entities(); track delivery.id) {
-            <tr class="border-b last:border-0 hover:bg-muted/50">
+            <tr
+              class="border-b last:border-0 cursor-pointer hover:bg-muted/50"
+              (click)="openDetail(delivery.id)"
+            >
               <td class="px-4 py-3 font-medium">
                 <div class="flex items-center gap-2">
                   <span>{{ delivery.materials.source_of_material }}</span>
