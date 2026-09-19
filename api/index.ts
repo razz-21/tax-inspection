@@ -9,15 +9,17 @@
 // run a bundler over the workspace), so it cannot resolve the
 // `@tax-inspection/shared` TypeScript path alias used deep inside the API.
 // To avoid a runtime "Cannot find module '@tax-inspection/shared'" crash, the
-// Hono app is pre-bundled into a single self-contained ESM file by the esbuild
-// step in `vercel.json`'s buildCommand, with the alias inlined. We import that
-// build artifact here. It is generated fresh on every deploy (dist/ is
-// gitignored), and Vercel's dependency tracer includes it in the function.
+// Hono app is pre-bundled into a single self-contained CommonJS file by the
+// esbuild step in the `vercel-build` npm script, with the alias inlined. We
+// import that build artifact here. It is generated fresh on every deploy
+// (dist/ is gitignored), and Vercel's dependency tracer includes it in the
+// function. CommonJS (.cjs) is required because Vercel compiles this function
+// to CommonJS, and `require()` cannot load an ESM (.mjs) module.
 //
 // Runs on the Node.js runtime (the default) because the API uses the native
 // MongoDB driver, bcryptjs and jsonwebtoken, which are not Edge-compatible.
 import { handle } from 'hono/vercel';
 // @ts-ignore -- generated at build time; no type declarations.
-import app from '../dist/inspector-api-vercel/app.mjs';
+import app from '../dist/inspector-api-vercel/app.cjs';
 
 export default handle(app);
