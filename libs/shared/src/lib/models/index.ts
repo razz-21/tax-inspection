@@ -35,3 +35,6 @@ export * from './dashboard/dashboard.model';
 
 // App settings (singleton)
 export * from './settings/settings.model';
+
+// Reports (aggregated read model over deliveries)
+export * from './reports/report.model';

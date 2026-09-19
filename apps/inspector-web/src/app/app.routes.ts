@@ -127,6 +127,11 @@ export const appRoutes: Route[] = [
           ).then((m) => m.SourceOfMaterialsPage),
       },
       {
+        path: 'reports',
+        loadComponent: () =>
+          import('./feature/reports/report.page').then((m) => m.ReportsPage),
+      },
+      {
         path: 'user-management',
         loadComponent: () =>
           import('./feature/user-management/user-management.page').then(

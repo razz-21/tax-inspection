@@ -14,6 +14,7 @@ import { paymentsRoutes } from './api/payments/payments.routes';
 import { sourceOfMaterialsRoutes } from './api/source-of-materials/source-of-materials.routes';
 import { dashboardRoutes } from './api/dashboard/dashboard.routes';
 import { settingsRoutes } from './api/settings/settings.routes';
+import { reportsRoutes } from './api/reports/reports.routes';
 
 const app = new Hono();
 
@@ -58,5 +59,6 @@ app.route(`${API_PREFIX}/payments`, paymentsRoutes);
 app.route(`${API_PREFIX}/source-of-materials`, sourceOfMaterialsRoutes);
 app.route(`${API_PREFIX}/dashboard`, dashboardRoutes);
 app.route(`${API_PREFIX}/settings`, settingsRoutes);
+app.route(`${API_PREFIX}/reports`, reportsRoutes);
 
 export default app;
