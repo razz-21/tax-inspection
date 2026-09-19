@@ -13,6 +13,7 @@ import { taxAssessmentsRoutes } from './api/tax-assessments/tax-assessments.rout
 import { paymentsRoutes } from './api/payments/payments.routes';
 import { sourceOfMaterialsRoutes } from './api/source-of-materials/source-of-materials.routes';
 import { dashboardRoutes } from './api/dashboard/dashboard.routes';
+import { settingsRoutes } from './api/settings/settings.routes';
 
 const app = new Hono();
 
@@ -56,5 +57,6 @@ app.route(`${API_PREFIX}/tax-assessments`, taxAssessmentsRoutes);
 app.route(`${API_PREFIX}/payments`, paymentsRoutes);
 app.route(`${API_PREFIX}/source-of-materials`, sourceOfMaterialsRoutes);
 app.route(`${API_PREFIX}/dashboard`, dashboardRoutes);
+app.route(`${API_PREFIX}/settings`, settingsRoutes);
 
 export default app;

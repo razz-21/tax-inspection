@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
   payments: `${API_PREFIX}/payments`,
   sourceOfMaterials: `${API_PREFIX}/source-of-materials`,
   dashboard: `${API_PREFIX}/dashboard`,
+  settings: `${API_PREFIX}/settings`,
   users: `${API_PREFIX}/users`,
   login: `${API_PREFIX}/users/login`,
   refresh: `${API_PREFIX}/users/refresh`,

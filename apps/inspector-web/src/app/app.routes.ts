@@ -133,6 +133,13 @@ export const appRoutes: Route[] = [
             (m) => m.UserManagementPage,
           ),
       },
+      {
+        path: 'profile-settings',
+        loadComponent: () =>
+          import('./feature/profile-settings/profile-settings.page').then(
+            (m) => m.ProfileSettingsPage,
+          ),
+      },
     ],
   },
 ];

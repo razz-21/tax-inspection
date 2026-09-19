@@ -1,7 +1,6 @@
 import type { Collection } from 'mongodb';
 import {
   buildPaginationMeta,
-  DEFAULT_PENALTY_RATE,
   newId,
   nowIso,
   type GetTaxAssessments,
@@ -9,6 +8,7 @@ import {
   type TaxAssessment,
 } from '@tax-inspection/shared';
 import { getDb } from '../../config/database';
+import { settingsService } from '../settings/settings.service';
 
 interface TaxAssessmentDoc {
   _id: string;
@@ -93,7 +93,8 @@ export const taxAssessmentsService = {
       0,
     );
 
-    const penaltyRate = DEFAULT_PENALTY_RATE;
+    // Penalty rate is the configurable tax rate from app settings.
+    const { tax_rate: penaltyRate } = await settingsService.get();
     const timestamp = nowIso();
     const doc: TaxAssessmentDoc = {
       _id: newId(),

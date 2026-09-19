@@ -8,6 +8,7 @@ import {
   lucideGalleryVerticalEnd,
   lucideLayers,
   lucideLayoutDashboard,
+  lucideSettings,
   lucideTruck,
   lucideUsers,
 } from '@ng-icons/lucide';
@@ -40,6 +41,7 @@ interface NavItem {
       lucideLayers,
       lucideChartColumn,
       lucideUsers,
+      lucideSettings,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,5 +56,6 @@ export class MainLayout {
     { label: 'Source of Materials', icon: 'lucideLayers', link: '/main/source-of-materials' },
     { label: 'Reports', icon: 'lucideChartColumn', link: '/main/reports' },
     { label: 'User Management', icon: 'lucideUsers', link: '/main/user-management' },
+    { label: 'Profile & Settings', icon: 'lucideSettings', link: '/main/profile-settings' },
   ];
 }

@@ -6,7 +6,11 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideChevronDown, lucideLogOut } from '@ng-icons/lucide';
+import {
+  lucideChevronDown,
+  lucideLogOut,
+  lucideSettings,
+} from '@ng-icons/lucide';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
@@ -25,7 +29,9 @@ import { MeStore } from '../../store/me/me.store';
     HlmButtonImports,
     HlmSidebarImports,
   ],
-  providers: [provideIcons({ lucideChevronDown, lucideLogOut })],
+  providers: [
+    provideIcons({ lucideChevronDown, lucideLogOut, lucideSettings }),
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="flex h-14 items-center gap-2 border-b px-4 bg-background">
@@ -75,6 +81,15 @@ import { MeStore } from '../../store/me/me.store';
               type="button"
               role="menuitem"
               class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
+              (click)="goToProfile()"
+            >
+              <ng-icon name="lucideSettings" size="1rem" />
+              Profile &amp; Settings
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="flex w-full items-center gap-2 border-t px-3 py-2 text-left text-sm hover:bg-accent"
               (click)="logout()"
             >
               <ng-icon name="lucideLogOut" size="1rem" />
@@ -99,6 +114,11 @@ export class Topbar {
 
   protected close(): void {
     this.open.set(false);
+  }
+
+  protected goToProfile(): void {
+    this.close();
+    void this.router.navigateByUrl('/main/profile-settings');
   }
 
   protected logout(): void {
