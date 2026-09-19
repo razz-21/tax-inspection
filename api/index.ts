@@ -2,8 +2,7 @@
 //
 // Vercel treats every file under this top-level `/api` directory as a
 // serverless function. `vercel.json` rewrites all `/api/*` requests to this
-// single function, and `hono/vercel` adapts the Hono app to Vercel's
-// Web-standard (Request -> Response) function signature.
+// single function, which runs the whole Hono app.
 //
 // Vercel's Node builder transpiles each source file individually (it does NOT
 // run a bundler over the workspace), so it cannot resolve the
@@ -18,8 +17,14 @@
 //
 // Runs on the Node.js runtime (the default) because the API uses the native
 // MongoDB driver, bcryptjs and jsonwebtoken, which are not Edge-compatible.
-import { handle } from 'hono/vercel';
+//
+// On the Node.js runtime Vercel invokes the function with Node's (req, res)
+// objects, NOT a Web `Request`. `hono/vercel`'s `handle()` is an Edge adapter
+// that expects a Web `Request`, so it fails here ("headers.get is not a
+// function"). `getRequestListener` from `@hono/node-server` is the Node adapter:
+// it converts Node req/res <-> Web Request/Response around `app.fetch`.
+import { getRequestListener } from '@hono/node-server';
 // @ts-ignore -- generated at build time; no type declarations.
 import app from '../dist/inspector-api-vercel/app.cjs';
 
-export default handle(app);
+export default getRequestListener(app.fetch);
