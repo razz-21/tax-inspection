@@ -151,7 +151,6 @@ export class CreateDeliveryPage {
         material_type: materials.materialType as MaterialType,
         unit: materials.unit as MaterialUnit,
       },
-      address: deliveryDetails.address,
       date: formatDate(deliveryDetails.date),
       time: `${deliveryDetails.time} ${deliveryDetails.meridiem}`.trim(),
       place_of_deliveries: deliveryDetails.placeOfDelivery,

@@ -11,7 +11,6 @@ interface DeliveryDoc {
   haulers?: { name?: string; address?: string };
   truck?: { plate_number?: string };
   materials?: { source_of_material?: string; material_type?: string };
-  address?: string;
   date?: string;
   time?: string;
   place_of_deliveries?: string;
@@ -30,7 +29,7 @@ function toRow(doc: DeliveryDoc): ReportRow {
     id: doc._id,
     hauler_name: doc.haulers?.name ?? '',
     truck_plate: doc.truck?.plate_number ?? '',
-    address: doc.address ?? doc.haulers?.address ?? '',
+    address: doc.haulers?.address ?? '',
     time: doc.time ?? '',
     source_of_material: doc.materials?.source_of_material ?? '',
     material_type: doc.materials?.material_type ?? '',

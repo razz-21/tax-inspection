@@ -23,7 +23,6 @@ interface DeliveryDoc {
   haulers: Hauler;
   truck: Truck;
   materials: Materials;
-  address: string;
   date: string;
   time: string;
   place_of_deliveries: string;
@@ -80,7 +79,6 @@ function toDomain(
     haulers: doc.haulers,
     truck: doc.truck,
     materials: doc.materials,
-    address: doc.address,
     date: doc.date,
     time: doc.time,
     place_of_deliveries: doc.place_of_deliveries,
@@ -150,7 +148,6 @@ export const deliveriesService = {
       haulers: input.haulers,
       truck: input.truck,
       materials: input.materials,
-      address: input.address,
       date: input.date,
       time: input.time,
       place_of_deliveries: input.place_of_deliveries,

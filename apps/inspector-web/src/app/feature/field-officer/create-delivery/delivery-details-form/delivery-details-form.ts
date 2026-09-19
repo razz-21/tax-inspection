@@ -6,7 +6,7 @@ import {
   type FieldTree,
 } from '@angular/forms/signals';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideMapPin, lucidePackageCheck } from '@ng-icons/lucide';
+import { lucidePackageCheck } from '@ng-icons/lucide';
 import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
@@ -16,7 +16,6 @@ export const MERIDIEMS = ['AM', 'PM'] as const;
 export type Meridiem = (typeof MERIDIEMS)[number];
 
 export interface DeliveryDetailsModel {
-  address: string;
   date: Date | null;
   time: string;
   meridiem: Meridiem | '';
@@ -27,7 +26,6 @@ export interface DeliveryDetailsModel {
 }
 
 export const emptyDeliveryDetails = (): DeliveryDetailsModel => ({
-  address: '',
   date: new Date(),
   time: '',
   meridiem: '',
@@ -39,7 +37,6 @@ export const emptyDeliveryDetails = (): DeliveryDetailsModel => ({
 
 /** Reusable validation schema for the Delivery Details section. */
 export const deliveryDetailsSchema = schema<DeliveryDetailsModel>((path) => {
-  required(path.address, { message: 'Address is required.' });
   required(path.date, { message: 'Date is required.' });
   required(path.time, { message: 'Time is required.' });
   required(path.meridiem, { message: 'Select AM or PM.' });
@@ -60,7 +57,7 @@ export const deliveryDetailsSchema = schema<DeliveryDetailsModel>((path) => {
     HlmInputImports,
     HlmLabelImports,
   ],
-  providers: [provideIcons({ lucidePackageCheck, lucideMapPin })],
+  providers: [provideIcons({ lucidePackageCheck })],
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './delivery-details-form.html',

@@ -28,8 +28,8 @@ export type Hauler = z.infer<typeof haulerSchema>;
 
 /** Driver + vehicle on the trip. */
 export const truckSchema = z.object({
-  drivers_name: z.string().min(1),
-  license_number: z.string().min(1),
+  drivers_name: z.string().default(''),
+  license_number: z.string().default(''),
   plate_number: z.string().min(1),
   truck_type: truckTypeSchema,
 });
@@ -66,7 +66,6 @@ export const deliverySchema = z.object({
   haulers: haulerSchema,
   truck: truckSchema,
   materials: materialsSchema,
-  address: z.string().min(1),
   date: z.string().min(1),
   time: z.string().min(1),
   place_of_deliveries: z.string().min(1),

@@ -30,8 +30,7 @@ export const emptyTruckDetails = (): TruckDetailsModel => ({
 
 /** Reusable validation schema for the Truck Details section. */
 export const truckDetailsSchema = schema<TruckDetailsModel>((path) => {
-  required(path.driverName, { message: "Driver's name is required." });
-  required(path.licenseNumber, { message: 'License number is required.' });
+  // Driver's name and license number are optional.
   required(path.plateNumber, { message: 'Plate number is required.' });
   required(path.truckType, { message: 'Truck type is required.' });
 });

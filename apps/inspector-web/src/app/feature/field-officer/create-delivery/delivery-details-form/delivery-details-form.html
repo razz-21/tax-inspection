@@ -5,42 +5,12 @@
   subtitle="Where and when it arrives"
 >
   @let delivery = field();
-  @let addressField = delivery.address();
   @let dateField = delivery.date();
   @let timeField = delivery.time();
   @let meridiemField = delivery.meridiem();
   @let placeField = delivery.placeOfDelivery();
   @let quantityField = delivery.quantity();
   @let receiptField = delivery.receiptNumber();
-
-  <!-- Address -->
-  <div class="space-y-2">
-    <label
-      hlmLabel
-      for="delivery-address"
-      [class.text-destructive]="addressField.touched() && addressField.invalid()"
-    >
-      Address
-    </label>
-    <div class="relative">
-      <input
-        hlmInput
-        id="delivery-address"
-        class="w-full pr-10"
-        placeholder="Barangay, City, Province"
-        [formField]="delivery.address"
-        [forceInvalid]="addressField.touched() && addressField.invalid()"
-      />
-      <ng-icon
-        name="lucideMapPin"
-        size="1.125rem"
-        class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-blue-600"
-      />
-    </div>
-    @if (addressField.touched() && addressField.invalid()) {
-      <p class="text-sm text-destructive">{{ addressField.errors()[0]?.message }}</p>
-    }
-  </div>
 
   <!-- Date -->
   <div class="space-y-2">
