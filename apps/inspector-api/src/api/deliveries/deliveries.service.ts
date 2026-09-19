@@ -4,6 +4,7 @@ import {
   newId,
   nowIso,
   type Delivery,
+  type DeliveryCreator,
   type GetDeliveries,
   type GetDeliveriesResponse,
   type Hauler,
@@ -11,12 +12,14 @@ import {
   type PatchDelivery,
   type PostDelivery,
   type Truck,
+  type UserRole,
 } from '@tax-inspection/shared';
 import { getDb } from '../../config/database';
 
 interface DeliveryDoc {
   _id: string;
   created_by: string;
+  is_new?: boolean;
   haulers: Hauler;
   truck: Truck;
   materials: Materials;
@@ -31,17 +34,49 @@ interface DeliveryDoc {
   updated_at: string;
 }
 
+/** Minimal user shape needed to resolve a delivery's creator. */
+interface UserRef {
+  _id: string;
+  fullname: string;
+  role: UserRole;
+}
+
 const collection = (): Collection<DeliveryDoc> =>
   getDb().collection<DeliveryDoc>('deliveries');
 
 const toIso = (value: unknown): string =>
   value instanceof Date ? value.toISOString() : String(value ?? nowIso());
 
+/**
+ * Resolve `created_by` ids to `{ id, name, role }` snapshots in one query.
+ * Returns a map keyed by user id.
+ */
+async function creatorMap(
+  ids: string[],
+): Promise<Map<string, DeliveryCreator>> {
+  const unique = [...new Set(ids)].filter(Boolean);
+  if (unique.length === 0) return new Map();
+
+  const users = await getDb()
+    .collection<UserRef>('users')
+    .find({ _id: { $in: unique } })
+    .toArray();
+
+  return new Map(
+    users.map((u) => [u._id, { id: u._id, name: u.fullname, role: u.role }]),
+  );
+}
+
 /** Map a Mongo document to the domain `Delivery`. */
-function toDomain(doc: DeliveryDoc): Delivery {
+function toDomain(
+  doc: DeliveryDoc,
+  creator: DeliveryCreator | null = null,
+): Delivery {
   return {
     id: typeof doc._id === 'string' ? doc._id : String(doc._id),
     created_by: doc.created_by,
+    creator,
+    is_new: doc.is_new ?? false,
     haulers: doc.haulers,
     truck: doc.truck,
     materials: doc.materials,
@@ -74,12 +109,8 @@ export const deliveriesService = {
     if (truck_type) filter['truck.truck_type'] = truck_type;
     if (material_type) filter['materials.material_type'] = material_type;
     if (search) {
-      filter['$or'] = [
-        { receipt_number: { $regex: search, $options: 'i' } },
-        { place_of_deliveries: { $regex: search, $options: 'i' } },
-        { 'haulers.name': { $regex: search, $options: 'i' } },
-        { address: { $regex: search, $options: 'i' } },
-      ];
+      // Deliveries are searchable by source of material only.
+      filter['materials.source_of_material'] = { $regex: search, $options: 'i' };
     }
 
     const skip = offset ?? (page - 1) * limit;
@@ -94,15 +125,19 @@ export const deliveriesService = {
       col.countDocuments(filter),
     ]);
 
+    const creators = await creatorMap(docs.map((d) => d.created_by));
+
     return {
-      data: docs.map(toDomain),
+      data: docs.map((d) => toDomain(d, creators.get(d.created_by) ?? null)),
       meta: buildPaginationMeta(total, { page, limit, offset }),
     };
   },
 
   async findById(id: string): Promise<Delivery | null> {
     const doc = await collection().findOne({ _id: id });
-    return doc ? toDomain(doc) : null;
+    if (!doc) return null;
+    const creators = await creatorMap([doc.created_by]);
+    return toDomain(doc, creators.get(doc.created_by) ?? null);
   },
 
   async create(input: PostDelivery, createdBy: string): Promise<Delivery> {
@@ -110,6 +145,8 @@ export const deliveriesService = {
     const doc: DeliveryDoc = {
       _id: newId(),
       created_by: createdBy,
+      // Field-officer reports start flagged as new.
+      is_new: true,
       haulers: input.haulers,
       truck: input.truck,
       materials: input.materials,
@@ -125,7 +162,8 @@ export const deliveriesService = {
     };
 
     await collection().insertOne(doc);
-    return toDomain(doc);
+    const creators = await creatorMap([createdBy]);
+    return toDomain(doc, creators.get(createdBy) ?? null);
   },
 
   async update(id: string, patch: PatchDelivery): Promise<Delivery | null> {
@@ -140,7 +178,9 @@ export const deliveriesService = {
       { returnDocument: 'after' },
     );
 
-    return doc ? toDomain(doc) : null;
+    if (!doc) return null;
+    const creators = await creatorMap([doc.created_by]);
+    return toDomain(doc, creators.get(doc.created_by) ?? null);
   },
 
   async remove(id: string): Promise<boolean> {

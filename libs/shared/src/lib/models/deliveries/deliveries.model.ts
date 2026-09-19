@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { userRoleSchema } from '../users/users.model';
 
 export const TRUCK_TYPES = ['10 Wheelers', '8 Wheelers', '6 Wheelers'] as const;
 export const truckTypeSchema = z.enum(TRUCK_TYPES);
@@ -42,11 +43,26 @@ export const materialsSchema = z.object({
 });
 export type Materials = z.infer<typeof materialsSchema>;
 
+/**
+ * Resolved snapshot of the user who created a delivery — attached to query
+ * responses so clients can display who reported it without a second lookup.
+ */
+export const deliveryCreatorSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  role: userRoleSchema,
+});
+export type DeliveryCreator = z.infer<typeof deliveryCreatorSchema>;
+
 /** Full delivery record. `id` is a UUID (maps to Mongo `_id`). */
 export const deliverySchema = z.object({
   id: z.uuid(),
   /** FK to the user who created this delivery (set server-side from the token). */
   created_by: z.uuid(),
+  /** Resolved `created_by` user (id/name/role); populated on query. */
+  creator: deliveryCreatorSchema.nullable().default(null),
+  /** True for deliveries newly reported by a field officer. */
+  is_new: z.boolean().default(true),
   haulers: haulerSchema,
   truck: truckSchema,
   materials: materialsSchema,

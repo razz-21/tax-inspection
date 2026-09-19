@@ -19,6 +19,8 @@ import {
 export const postDeliverySchema = deliverySchema.omit({
   id: true,
   created_by: true,
+  creator: true,
+  is_new: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -26,7 +28,13 @@ export type PostDelivery = z.infer<typeof postDeliverySchema>;
 
 /** PATCH /deliveries/:id — partial update. `id` comes from the route. */
 export const patchDeliverySchema = deliverySchema
-  .omit({ id: true, created_by: true, createdAt: true, updatedAt: true })
+  .omit({
+    id: true,
+    created_by: true,
+    creator: true,
+    createdAt: true,
+    updatedAt: true,
+  })
   .partial();
 export type PatchDelivery = z.infer<typeof patchDeliverySchema>;
 

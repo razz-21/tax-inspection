@@ -99,6 +99,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'deliveries',
+        loadComponent: () =>
+          import('./feature/deliveries/deliveries.page').then(
+            (m) => m.DeliveriesPage,
+          ),
+      },
+      {
         path: 'user-management',
         loadComponent: () =>
           import('./feature/user-management/user-management.page').then(

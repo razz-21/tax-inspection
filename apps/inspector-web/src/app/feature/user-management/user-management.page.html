@@ -44,6 +44,36 @@
           </tr>
         </thead>
         <tbody>
+          @if (store.loading()) {
+            @for (row of skeletonRows; track $index) {
+              <tr class="border-b last:border-0">
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <div hlmSkeleton class="size-8 rounded-full"></div>
+                    <div hlmSkeleton class="h-4 w-28 rounded"></div>
+                  </div>
+                </td>
+                <td class="px-4 py-3">
+                  <div hlmSkeleton class="h-4 w-40 rounded"></div>
+                </td>
+                <td class="px-4 py-3">
+                  <div hlmSkeleton class="h-6 w-20 rounded-full"></div>
+                </td>
+                <td class="px-4 py-3">
+                  <div hlmSkeleton class="h-6 w-20 rounded-full"></div>
+                </td>
+                <td class="px-4 py-3">
+                  <div hlmSkeleton class="h-4 w-32 rounded"></div>
+                </td>
+                <td class="px-4 py-3">
+                  <div hlmSkeleton class="h-4 w-32 rounded"></div>
+                </td>
+                <td class="px-4 py-3">
+                  <div hlmSkeleton class="ml-auto h-4 w-16 rounded"></div>
+                </td>
+              </tr>
+            }
+          } @else {
           @for (user of store.entities(); track user.id) {
             <tr
               class="border-b last:border-0 cursor-pointer hover:bg-muted/50"
@@ -100,15 +130,14 @@
           } @empty {
             <tr>
               <td class="text-muted-foreground px-4 py-6 text-center" colspan="7">
-                @if (store.loading()) {
-                  Loading users…
-                } @else if (store.error()) {
+                @if (store.error()) {
                   {{ store.error() }}
                 } @else {
                   No users yet.
                 }
               </td>
             </tr>
+          }
           }
         </tbody>
       </table>

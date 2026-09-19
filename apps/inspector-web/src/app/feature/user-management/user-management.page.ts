@@ -25,6 +25,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import type { PublicUser, UserStatus } from '@tax-inspection/shared';
 import { UsersStore } from '../../store/users/users.store';
 import {
@@ -45,6 +46,7 @@ import { UserFormSheet } from './user-form-sheet/user-form-sheet';
     HlmCardImports,
     HlmInputImports,
     HlmPaginationImports,
+    HlmSkeletonImports,
     UserFormSheet,
   ],
   providers: [
@@ -57,6 +59,9 @@ export class UserManagementPage implements OnInit {
   private readonly dispatcher = inject(Dispatcher);
   protected readonly store = inject(UsersStore);
   protected readonly search = signal('');
+
+  /** Placeholder rows rendered while the table is loading. */
+  protected readonly skeletonRows = Array.from({ length: 6 });
 
   constructor() {
     const events = inject(Events);
