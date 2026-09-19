@@ -26,6 +26,10 @@ import {
   lucideEye,
   lucideEyeOff,
   lucideLock,
+  lucideMonitor,
+  lucideMoon,
+  lucidePalette,
+  lucideSun,
   lucideUser,
 } from '@ng-icons/lucide';
 import { toast } from '@spartan-ng/brain/sonner';
@@ -33,10 +37,12 @@ import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import type { PatchUser, UserRole } from '@tax-inspection/shared';
 import { AuthService } from '../../service/auth.service';
 import { UsersService } from '../../service/users.service';
 import { SettingsService } from '../../service/settings.service';
+import { ThemeService, type Theme } from '../../service/theme.service';
 import { MeStore } from '../../store/me/me.store';
 
 interface AccountModel {
@@ -69,6 +75,7 @@ const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
     HlmButtonImports,
     HlmInputImports,
     HlmLabelImports,
+    HlmTabsImports,
   ],
   providers: [
     provideIcons({
@@ -78,6 +85,10 @@ const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
       lucideEye,
       lucideEyeOff,
       lucideCheck,
+      lucidePalette,
+      lucideMonitor,
+      lucideMoon,
+      lucideSun,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -88,7 +99,11 @@ export class ProfileSettingsPage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly users = inject(UsersService);
   private readonly settings = inject(SettingsService);
+  private readonly themeService = inject(ThemeService);
   protected readonly me = inject(MeStore);
+
+  /** Current appearance preference (auto/dark/light). */
+  protected readonly theme = this.themeService.theme;
 
   protected readonly roleLabel = computed(
     () => ROLE_LABELS[this.me.role() ?? 'field_officer'],
@@ -254,6 +269,11 @@ export class ProfileSettingsPage implements OnInit {
     } finally {
       this.savingPassword.set(false);
     }
+  }
+
+  // --- Appearance ---
+  protected setTheme(theme: string): void {
+    this.themeService.set(theme as Theme);
   }
 
   // --- Profile card actions ---

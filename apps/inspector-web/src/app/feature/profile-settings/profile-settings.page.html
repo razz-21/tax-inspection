@@ -209,6 +209,43 @@
         </div>
       </div>
 
+      <!-- Appearance -->
+      <div class="rounded-xl border bg-card">
+        <div class="flex items-center gap-3 border-b p-5">
+          <span class="bg-muted flex size-9 items-center justify-center rounded-lg">
+            <ng-icon name="lucidePalette" size="1.1rem" />
+          </span>
+          <div>
+            <h3 class="font-semibold">Appearance</h3>
+            <p class="text-muted-foreground text-xs">
+              Choose how the app looks on this device
+            </p>
+          </div>
+        </div>
+
+        <div class="p-5">
+          <hlm-tabs [tab]="theme()" (tabActivated)="setTheme($event)">
+            <hlm-tabs-list
+              class="grid w-full max-w-sm grid-cols-3"
+              aria-label="Theme"
+            >
+              <button hlmTabsTrigger="auto">
+                <ng-icon name="lucideMonitor" size="1rem" />
+                Auto
+              </button>
+              <button hlmTabsTrigger="dark">
+                <ng-icon name="lucideMoon" size="1rem" />
+                Dark
+              </button>
+              <button hlmTabsTrigger="light">
+                <ng-icon name="lucideSun" size="1rem" />
+                Light
+              </button>
+            </hlm-tabs-list>
+          </hlm-tabs>
+        </div>
+      </div>
+
       <!-- Change password -->
       <div class="rounded-xl border bg-card">
         <div class="flex items-center gap-3 border-b p-5">

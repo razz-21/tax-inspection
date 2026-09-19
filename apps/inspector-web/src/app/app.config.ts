@@ -14,6 +14,7 @@ import { appRoutes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { errorInterceptor } from './interceptors/error.interceptor';
 import { SourceOfMaterialsStore } from './store/source-of-materials/source-of-materials.store';
+import { ThemeService } from './service/theme.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -27,6 +28,10 @@ export const appConfig: ApplicationConfig = {
     // before a field officer signs in (it prefetches material sources).
     provideAppInitializer(() => {
       inject(SourceOfMaterialsStore);
+    }),
+    // Apply the persisted color theme as early as possible.
+    provideAppInitializer(() => {
+      inject(ThemeService);
     }),
   ],
 };
