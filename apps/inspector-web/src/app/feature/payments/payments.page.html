@@ -34,13 +34,14 @@
         </button>
       }
     </div>
-    <button hlmBtn [disabled]="store.loading()" (click)="reload()">
-      <ng-icon
-        name="lucideRefreshCw"
-        size="1rem"
-        class="mr-1"
-        [class.animate-spin]="store.loading()"
-      />
+    <button hlmBtn [loading]="store.loading()" (click)="reload()">
+      @if (!store.loading()) {
+        <ng-icon
+          name="lucideRefreshCw"
+          size="1rem"
+          class="mr-1"
+        />
+      }
       Reload
     </button>
   </div>

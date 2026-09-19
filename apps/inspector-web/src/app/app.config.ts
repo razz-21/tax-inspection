@@ -1,5 +1,7 @@
 import {
   ApplicationConfig,
+  inject,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
@@ -11,6 +13,7 @@ import {
 import { appRoutes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { errorInterceptor } from './interceptors/error.interceptor';
+import { SourceOfMaterialsStore } from './store/source-of-materials/source-of-materials.store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,5 +23,10 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([authInterceptor, errorInterceptor]),
     ),
+    // Instantiate the store at startup so its `loggedIn` listener is active
+    // before a field officer signs in (it prefetches material sources).
+    provideAppInitializer(() => {
+      inject(SourceOfMaterialsStore);
+    }),
   ],
 };

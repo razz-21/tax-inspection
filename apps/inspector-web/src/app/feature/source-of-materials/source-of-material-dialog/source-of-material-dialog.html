@@ -1,0 +1,68 @@
+<hlm-alert-dialog [state]="open() ? 'open' : 'closed'" (closed)="closed.emit()">
+  <hlm-alert-dialog-content *brnAlertDialogContent class="w-full sm:max-w-lg">
+    <div hlmAlertDialogHeader>
+      <h3 hlmAlertDialogTitle>
+        {{ editing() ? 'Edit source of materials' : 'New source of materials' }}
+      </h3>
+      <p hlmAlertDialogDescription>
+        Add a material source that deliveries can reference.
+      </p>
+    </div>
+
+    <form class="space-y-4 py-2" (submit)="$event.preventDefault(); onSubmit()">
+      @let nameField = sourceForm.name();
+
+      <!-- Name -->
+      <div class="space-y-2">
+        <label
+          hlmLabel
+          for="som-name"
+          [class.text-destructive]="nameField.touched() && nameField.invalid()"
+        >
+          Name
+        </label>
+        <input
+          hlmInput
+          id="som-name"
+          class="w-full"
+          placeholder="e.g. Quarry A"
+          [formField]="sourceForm.name"
+          [forceInvalid]="nameField.touched() && nameField.invalid()"
+        />
+        @if (nameField.touched() && nameField.invalid()) {
+          <p class="text-destructive text-sm">
+            {{ nameField.errors()[0]?.message }}
+          </p>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="space-y-2">
+        <label hlmLabel for="som-description">Description</label>
+        <textarea
+          hlmTextarea
+          id="som-description"
+          rows="3"
+          class="w-full"
+          placeholder="Optional description"
+          [formField]="sourceForm.description"
+        ></textarea>
+      </div>
+    </form>
+
+    <div hlmAlertDialogFooter>
+      <button
+        hlmBtn
+        variant="secondary"
+        type="button"
+        [disabled]="saving()"
+        (click)="closed.emit()"
+      >
+        Cancel
+      </button>
+      <button hlmBtn type="button" [loading]="saving()" (click)="onSubmit()">
+        {{ editing() ? 'Save changes' : 'Create' }}
+      </button>
+    </div>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

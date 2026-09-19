@@ -120,6 +120,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'source-of-materials',
+        loadComponent: () =>
+          import(
+            './feature/source-of-materials/source-of-materials.page'
+          ).then((m) => m.SourceOfMaterialsPage),
+      },
+      {
         path: 'user-management',
         loadComponent: () =>
           import('./feature/user-management/user-management.page').then(

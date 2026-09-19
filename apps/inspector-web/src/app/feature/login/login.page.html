@@ -84,8 +84,8 @@
           </div>
         </div>
 
-        <button hlmBtn type="submit" class="w-full" [disabled]="submitting()">
-          {{ submitting() ? 'Signing in…' : 'Login' }}
+        <button hlmBtn type="submit" class="w-full" [loading]="submitting()">
+          Login
         </button>
       </form>
     </div>

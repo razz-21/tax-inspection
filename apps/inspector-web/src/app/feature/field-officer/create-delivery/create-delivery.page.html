@@ -39,8 +39,8 @@
     >
       Cancel
     </a>
-    <button hlmBtn type="submit" class="flex-1" [disabled]="submitting()">
-      {{ submitting() ? 'Creating…' : 'Create delivery' }}
+    <button hlmBtn type="submit" class="flex-1" [loading]="submitting()">
+      Create delivery
     </button>
   </div>
 </form>
@@ -62,7 +62,7 @@
       <button hlmBtn variant="secondary" type="button" (click)="confirmOpen.set(false)">
         Cancel
       </button>
-      <button hlmBtn type="button" (click)="confirmCreate()">
+      <button hlmBtn type="button" [loading]="submitting()" (click)="confirmCreate()">
         Create delivery
       </button>
     </div>

@@ -158,14 +158,8 @@
       >
         Cancel
       </button>
-      <button hlmBtn type="button" [disabled]="saving()" (click)="onSubmit()">
-        {{
-          saving()
-            ? 'Saving…'
-            : editing()
-              ? 'Save changes'
-              : 'Save payment'
-        }}
+      <button hlmBtn type="button" [loading]="saving()" (click)="onSubmit()">
+        {{ editing() ? 'Save changes' : 'Save payment' }}
       </button>
     </div>
   </hlm-alert-dialog-content>

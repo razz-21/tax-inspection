@@ -1,0 +1,10 @@
+{
+  "name": "item",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ui/item/src",
+  "prefix": "hlm",
+  "tags": [],
+  "projectType": "library",
+  "// targets": "to see all targets run: nx show project item --web",
+  "targets": {}
+}

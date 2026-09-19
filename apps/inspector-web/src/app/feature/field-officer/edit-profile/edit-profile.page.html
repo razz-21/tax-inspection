@@ -75,9 +75,10 @@
         hlmBtn
         type="submit"
         class="h-12 w-full rounded-xl text-base font-semibold"
-        [disabled]="submitting() || editForm().invalid()"
+        [disabled]="editForm().invalid()"
+        [loading]="submitting()"
       >
-        {{ submitting() ? 'Saving…' : 'Save changes' }}
+        Save changes
       </button>
       <a
         hlmBtn

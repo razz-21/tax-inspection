@@ -1,6 +1,6 @@
 import { computed, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
+import { filter, switchMap } from 'rxjs';
 import { signalStore, withComputed, withHooks, withState } from '@ngrx/signals';
 import {
   removeAllEntities,
@@ -20,6 +20,8 @@ import { paymentsApiEvents, paymentsPageEvents } from './payments.events';
 
 interface PaymentsState {
   loading: boolean;
+  /** True once the list has been fetched at least once (cache guard). */
+  loaded: boolean;
   error: string | null;
   query: Partial<GetPayments>;
   meta: PaginationMeta | null;
@@ -27,6 +29,7 @@ interface PaymentsState {
 
 const initialState: PaymentsState = {
   loading: false,
+  loaded: false,
   error: null,
   // Newest payments first.
   query: { page: 1, limit: 12, sortBy: 'created_at', sortOrder: 'desc' },
@@ -42,10 +45,11 @@ export const PaymentsStore = signalStore(
   })),
   // State transitions driven purely by events.
   withReducer(
-    on(paymentsPageEvents.opened, paymentsPageEvents.reloaded, () => ({
-      loading: true,
-      error: null,
-    })),
+    // Initial open only shows the loading state when nothing is cached yet.
+    on(paymentsPageEvents.opened, (_event, state) =>
+      state.loaded ? {} : { loading: true, error: null },
+    ),
+    on(paymentsPageEvents.reloaded, () => ({ loading: true, error: null })),
     on(paymentsPageEvents.queryChanged, (event, state) => ({
       loading: true,
       error: null,
@@ -53,7 +57,7 @@ export const PaymentsStore = signalStore(
     })),
     on(paymentsApiEvents.loadedSuccess, ({ payload }) => [
       setAllEntities(payload.data),
-      { loading: false, meta: payload.meta },
+      { loading: false, loaded: true, meta: payload.meta },
     ]),
     on(paymentsApiEvents.loadedFailure, ({ payload }) => ({
       loading: false,
@@ -73,26 +77,31 @@ export const PaymentsStore = signalStore(
       const dispatch = (event: unknown) =>
         dispatcher.dispatch(event as Parameters<typeof dispatcher.dispatch>[0]);
 
+      const loadList = () =>
+        service.list(store.query()).pipe(
+          mapResponse({
+            next: (res) => paymentsApiEvents.loadedSuccess(res),
+            error: (err: Error) =>
+              paymentsApiEvents.loadedFailure(
+                err.message || 'Failed to load payments',
+              ),
+          }),
+        );
+
+      // Initial load — skip the API call when the list is already cached.
       events
-        .on(
-          paymentsPageEvents.opened,
-          paymentsPageEvents.reloaded,
-          paymentsPageEvents.queryChanged,
-        )
+        .on(paymentsPageEvents.opened)
         .pipe(
-          switchMap(() =>
-            service.list(store.query()).pipe(
-              mapResponse({
-                next: (res) => paymentsApiEvents.loadedSuccess(res),
-                error: (err: Error) =>
-                  paymentsApiEvents.loadedFailure(
-                    err.message || 'Failed to load payments',
-                  ),
-              }),
-            ),
-          ),
+          filter(() => !store.loaded()),
+          switchMap(loadList),
           takeUntilDestroyed(),
         )
+        .subscribe(dispatch);
+
+      // Reload / query change — always refetch.
+      events
+        .on(paymentsPageEvents.reloaded, paymentsPageEvents.queryChanged)
+        .pipe(switchMap(loadList), takeUntilDestroyed())
         .subscribe(dispatch);
     },
   }),

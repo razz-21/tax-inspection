@@ -20,7 +20,7 @@
 } @else if (error()) {
   <div class="flex flex-col items-center gap-3 px-4 py-12 text-center">
     <p class="text-sm text-muted-foreground">{{ error() }}</p>
-    <button hlmBtn variant="outline" (click)="load()">Retry</button>
+    <button hlmBtn variant="outline" [loading]="loading()" (click)="load()">Retry</button>
   </div>
 } @else if (delivery(); as d) {
   <hlm-tabs [tab]="activeTab" class="p-4 pb-28">
@@ -286,10 +286,10 @@
           hlmBtn
           variant="destructive"
           type="button"
-          [disabled]="deleting()"
+          [loading]="deleting()"
           (click)="confirmDelete()"
         >
-          {{ deleting() ? 'Deleting…' : 'Delete' }}
+          Delete
         </button>
       </div>
     </hlm-alert-dialog-content>

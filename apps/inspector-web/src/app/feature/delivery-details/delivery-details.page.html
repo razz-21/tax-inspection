@@ -9,7 +9,7 @@
 } @else if (error()) {
   <div class="flex flex-col items-center gap-3 px-4 py-16 text-center">
     <p class="text-sm text-muted-foreground">{{ error() }}</p>
-    <button hlmBtn variant="outline" (click)="load()">Retry</button>
+    <button hlmBtn variant="outline" [loading]="loading()" (click)="load()">Retry</button>
   </div>
 } @else if (delivery(); as d) {
   <!-- Header -->
@@ -360,11 +360,11 @@
                 hlmBtn
                 variant="outline"
                 class="flex-1"
-                [disabled]="calculatingTax()"
+                [loading]="calculatingTax()"
                 (click)="calculateTax()"
               >
                 <ng-icon name="lucideCalculator" size="1rem" class="mr-1" />
-                {{ calculatingTax() ? 'Recalculating…' : 'Recalculate' }}
+                Recalculate
               </button>
               <button
                 hlmBtn
@@ -391,11 +391,11 @@
               <button
                 hlmBtn
                 class="mt-2"
-                [disabled]="calculatingTax()"
+                [loading]="calculatingTax()"
                 (click)="calculateTax()"
               >
                 <ng-icon name="lucideCalculator" size="1rem" class="mr-1" />
-                {{ calculatingTax() ? 'Calculating…' : 'Calculate Tax' }}
+                Calculate Tax
               </button>
             </div>
           }

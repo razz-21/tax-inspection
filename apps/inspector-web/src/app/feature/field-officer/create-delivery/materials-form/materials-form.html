@@ -9,7 +9,7 @@
   @let typeField = materials.materialType();
   @let unitField = materials.unit();
 
-  <!-- Source of Material -->
+  <!-- Source of Material (autocomplete) -->
   <div class="space-y-2">
     <label
       hlmLabel
@@ -18,14 +18,52 @@
     >
       Source of material
     </label>
-    <input
-      hlmInput
-      id="material-source"
-      class="w-full"
-      placeholder="e.g. Rizal Quarry"
-      [formField]="materials.source"
-      [forceInvalid]="sourceField.touched() && sourceField.invalid()"
-    />
+    <div class="relative">
+      <input
+        hlmInput
+        id="material-source"
+        class="w-full"
+        autocomplete="off"
+        placeholder="e.g. Rizal Quarry"
+        [formField]="materials.source"
+        [forceInvalid]="sourceField.touched() && sourceField.invalid()"
+        (focus)="openPanel()"
+        (input)="openPanel()"
+        (blur)="closePanelSoon()"
+      />
+
+      @if (panelOpen() && (suggestions().length > 0 || canAdd())) {
+        <ul
+          class="bg-popover text-popover-foreground absolute top-full z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border p-1 shadow-md"
+        >
+          @for (source of suggestions(); track source.id) {
+            <li>
+              <button
+                type="button"
+                class="hover:bg-accent hover:text-accent-foreground flex w-full items-center rounded-sm px-2 py-1.5 text-left text-sm"
+                (mousedown)="$event.preventDefault()"
+                (click)="selectSource(source.name)"
+              >
+                {{ source.name }}
+              </button>
+            </li>
+          }
+          @if (canAdd()) {
+            <li>
+              <button
+                type="button"
+                class="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm font-medium"
+                (mousedown)="$event.preventDefault()"
+                (click)="addSource()"
+              >
+                <ng-icon name="lucidePlus" size="1rem" />
+                Add "{{ sourceField.value() }}"
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
     @if (sourceField.touched() && sourceField.invalid()) {
       <p class="text-sm text-destructive">{{ sourceField.errors()[0]?.message }}</p>
     }

@@ -1,0 +1,112 @@
+<div class="space-y-4 max-w-4xl mx-auto">
+  <header class="mb-2 flex items-start justify-between gap-3">
+    <div>
+      <h2 class="text-2xl font-bold tracking-tight">Source of Materials</h2>
+      <p class="text-muted-foreground text-sm">
+        Reference list of where delivered materials originate.
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button hlmBtn variant="outline" [loading]="store.loading()" (click)="reload()">
+        @if (!store.loading()) {
+          <ng-icon name="lucideRefreshCw" size="1rem" class="mr-1" />
+        }
+        Reload
+      </button>
+      <button hlmBtn (click)="openCreate()">
+        <ng-icon name="lucidePlus" size="1rem" class="mr-1" />
+        Source of Materials
+      </button>
+    </div>
+  </header>
+
+  @if (store.loading()) {
+    <!-- Loading skeletons -->
+    <div hlmItemGroup>
+      @for (row of skeletonRows; track $index) {
+        <div hlmItem variant="outline">
+          <hlm-skeleton class="size-9 rounded-md" />
+          <div hlmItemContent class="gap-2">
+            <hlm-skeleton class="h-4 w-40" />
+            <hlm-skeleton class="h-3 w-64" />
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (store.error()) {
+    <!-- Error state -->
+    <div
+      class="border-destructive/30 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
+    >
+      {{ store.error() }}
+    </div>
+  } @else if (store.sorted().length === 0) {
+    <!-- Empty state -->
+    <div
+      class="text-muted-foreground rounded-md border border-dashed p-10 text-center text-sm"
+    >
+      No source of materials found.
+    </div>
+  } @else {
+    <!-- List -->
+    <div hlmItemGroup>
+      @for (item of store.sorted(); track item.id) {
+        <div hlmItem variant="outline">
+          <div hlmItemMedia variant="icon">
+            <ng-icon name="lucideLayers" />
+          </div>
+          <div hlmItemContent>
+            <span hlmItemTitle>{{ item.name }}</span>
+            <span hlmItemDescription>
+              {{ item.description || 'No description provided' }}
+            </span>
+          </div>
+          <div hlmItemActions>
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon"
+              aria-label="Edit"
+              (click)="openEdit(item)"
+            >
+              <ng-icon name="lucidePencil" size="1rem" />
+            </button>
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon"
+              class="text-destructive hover:text-destructive"
+              aria-label="Delete"
+              (click)="requestDelete(item)"
+            >
+              <ng-icon name="lucideTrash2" size="1rem" />
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <app-source-of-material-dialog
+    [open]="dialogOpen()"
+    [editing]="editing()"
+    [saving]="store.saving()"
+    (save)="saveSource($event)"
+    (closed)="closeDialog()"
+  />
+
+  <app-confirm-dialog
+    [open]="pendingDelete() !== null"
+    title="Delete source of materials?"
+    [description]="
+      'This will permanently remove ' +
+      (pendingDelete()?.name ?? 'this record') +
+      '.'
+    "
+    confirmLabel="Delete"
+    pendingLabel="Deleting…"
+    [pending]="store.deleting()"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()"
+  />
+</div>

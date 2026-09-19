@@ -47,9 +47,11 @@ export class AuthService {
     return this.http
       .post<LoginResponse>(API_ENDPOINTS.login, credentials)
       .pipe(
-        tap((res) =>
-          this.me.setSession(res.user, res.accessToken, res.refreshToken),
-        ),
+        tap((res) => {
+          this.me.setSession(res.user, res.accessToken, res.refreshToken);
+          // Broadcast so feature stores can prefetch data for this user.
+          this.dispatcher.dispatch(authEvents.loggedIn(res.user));
+        }),
         map((res) => res.user),
       );
   }

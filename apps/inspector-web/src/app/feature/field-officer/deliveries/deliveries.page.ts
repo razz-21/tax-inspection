@@ -59,7 +59,7 @@ import { DeliveriesService } from '../../../service/deliveries.service';
     } @else if (error()) {
       <div class="flex flex-col items-center gap-3 px-4 py-12 text-center">
         <p class="text-sm text-muted-foreground">{{ error() }}</p>
-        <button hlmBtn variant="outline" (click)="load()">Retry</button>
+        <button hlmBtn variant="outline" [loading]="loading()" (click)="load()">Retry</button>
       </div>
     } @else {
       <ul class="divide-y">

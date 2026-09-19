@@ -32,7 +32,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
             hlmBtn
             variant="destructive"
             type="button"
-            [disabled]="pending()"
+            [loading]="pending()"
             (click)="confirmed.emit()"
           >
             {{ pending() ? pendingLabel() : confirmLabel() }}

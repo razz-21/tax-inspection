@@ -1,6 +1,6 @@
 import { computed, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
+import { filter, switchMap } from 'rxjs';
 import { signalStore, withComputed, withHooks, withState } from '@ngrx/signals';
 import {
   removeAllEntities,
@@ -20,12 +20,15 @@ import {
 
 interface InspectionsState {
   loading: boolean;
+  /** True once the list has been fetched at least once (cache guard). */
+  loaded: boolean;
   error: string | null;
   selectedId: string | null;
 }
 
 const initialState: InspectionsState = {
   loading: false,
+  loaded: false,
   error: null,
   selectedId: null,
 };
@@ -48,13 +51,14 @@ export const InspectionsStore = signalStore(
   })),
   // State transitions driven purely by events.
   withReducer(
-    on(inspectionsPageEvents.opened, inspectionsPageEvents.reloaded, () => ({
-      loading: true,
-      error: null,
-    })),
+    // Initial open only shows the loading state when nothing is cached yet.
+    on(inspectionsPageEvents.opened, (_event, state) =>
+      state.loaded ? {} : { loading: true, error: null },
+    ),
+    on(inspectionsPageEvents.reloaded, () => ({ loading: true, error: null })),
     on(inspectionsApiEvents.loadedSuccess, ({ payload }) => [
       setAllEntities(payload),
-      { loading: false },
+      { loading: false, loaded: true },
     ]),
     on(inspectionsApiEvents.loadedFailure, ({ payload }) => ({
       loading: false,
@@ -70,28 +74,40 @@ export const InspectionsStore = signalStore(
   // Side effects: listen for UI events, call the API, dispatch API events.
   withHooks({
     onInit(
-      _store,
+      store,
       events = inject(Events),
       dispatcher = inject(Dispatcher),
       service = inject(InspectionsService),
     ) {
+      const dispatch = (event: unknown) =>
+        dispatcher.dispatch(event as Parameters<typeof dispatcher.dispatch>[0]);
+
+      const loadList = () =>
+        service.getAll().pipe(
+          mapResponse({
+            next: (items) => inspectionsApiEvents.loadedSuccess(items),
+            error: (err: Error) =>
+              inspectionsApiEvents.loadedFailure(
+                err.message || 'Failed to load inspections',
+              ),
+          }),
+        );
+
+      // Initial load — skip the API call when the list is already cached.
       events
-        .on(inspectionsPageEvents.opened, inspectionsPageEvents.reloaded)
+        .on(inspectionsPageEvents.opened)
         .pipe(
-          switchMap(() =>
-            service.getAll().pipe(
-              mapResponse({
-                next: (items) => inspectionsApiEvents.loadedSuccess(items),
-                error: (err: Error) =>
-                  inspectionsApiEvents.loadedFailure(
-                    err.message || 'Failed to load inspections',
-                  ),
-              }),
-            ),
-          ),
+          filter(() => !store.loaded()),
+          switchMap(loadList),
           takeUntilDestroyed(),
         )
-        .subscribe((event) => dispatcher.dispatch(event));
+        .subscribe(dispatch);
+
+      // Explicit reload — always refetch.
+      events
+        .on(inspectionsPageEvents.reloaded)
+        .pipe(switchMap(loadList), takeUntilDestroyed())
+        .subscribe(dispatch);
     },
   }),
 );
