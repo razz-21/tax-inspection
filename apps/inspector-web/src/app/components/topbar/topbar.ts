@@ -34,7 +34,7 @@ import { MeStore } from '../../store/me/me.store';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <header class="flex h-14 items-center gap-2 border-b px-4 bg-background">
+    <header class="flex h-16 items-center gap-2 border-b px-4 bg-background">
       <button hlmSidebarTrigger></button>
       <span class="text-sm font-medium">Tax Inspection</span>
 
