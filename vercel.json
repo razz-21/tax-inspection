@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx nx build inspector-web --configuration=production",
+  "buildCommand": "npx nx build inspector-web --configuration=production && npx esbuild apps/inspector-api/src/app.ts --bundle --platform=node --format=esm --packages=external --alias:@tax-inspection/shared=./libs/shared/src/index.ts --outfile=dist/inspector-api-vercel/app.mjs",
   "outputDirectory": "dist/apps/inspector-web/browser",
   "functions": {
     "api/index.ts": {
