@@ -113,6 +113,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'payments',
+        loadComponent: () =>
+          import('./feature/payments/payments.page').then(
+            (m) => m.PaymentsPage,
+          ),
+      },
+      {
         path: 'user-management',
         loadComponent: () =>
           import('./feature/user-management/user-management.page').then(

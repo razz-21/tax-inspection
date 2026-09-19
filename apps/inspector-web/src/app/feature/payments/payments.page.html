@@ -1,13 +1,39 @@
 <div class="space-y-3">
   <header class="mb-6">
-    <h2 class="text-2xl font-bold tracking-tight">Inspections</h2>
+    <h2 class="text-2xl font-bold tracking-tight">Payments</h2>
     <p class="text-muted-foreground text-sm">
-      All inspections recorded across deliveries.
+      All recorded payments across deliveries.
     </p>
   </header>
 
-  <!-- Toolbar: reload (right) -->
-  <div class="flex items-center justify-end gap-3">
+  <!-- Toolbar: status filter (left) + reload (right) -->
+  <div class="flex items-center justify-between gap-3">
+    <div class="flex flex-wrap gap-2">
+      <button
+        class="rounded-lg border px-3 py-1.5 text-sm font-medium transition"
+        [class]="
+          activeStatus() === 'all'
+            ? 'border-primary bg-primary text-primary-foreground'
+            : 'border-input text-foreground hover:bg-accent'
+        "
+        (click)="filterByStatus('all')"
+      >
+        All
+      </button>
+      @for (status of statuses; track status) {
+        <button
+          class="rounded-lg border px-3 py-1.5 text-sm font-medium transition"
+          [class]="
+            activeStatus() === status
+              ? 'border-primary bg-primary text-primary-foreground'
+              : 'border-input text-foreground hover:bg-accent'
+          "
+          (click)="filterByStatus(status)"
+        >
+          {{ status }}
+        </button>
+      }
+    </div>
     <button hlmBtn [disabled]="store.loading()" (click)="reload()">
       <ng-icon
         name="lucideRefreshCw"
@@ -24,13 +50,12 @@
       <table class="w-full text-sm">
         <thead class="text-muted-foreground border-b">
           <tr>
-            <th class="px-4 py-3 text-left font-normal">Actual Volume</th>
-            <th class="px-4 py-3 text-left font-normal">Allowed Volume</th>
-            <th class="px-4 py-3 text-left font-normal">Excess Volume</th>
-            <th class="px-4 py-3 text-left font-normal">Result</th>
-            <th class="px-4 py-3 text-left font-normal">Inspection date</th>
-            <th class="px-4 py-3 text-left font-normal">Inspected By</th>
-            <th class="px-4 py-3 text-left font-normal">Created at</th>
+            <th class="px-4 py-3 text-left font-normal">Amount</th>
+            <th class="px-4 py-3 text-left font-normal">Status</th>
+            <th class="px-4 py-3 text-left font-normal">Payment date</th>
+            <th class="px-4 py-3 text-left font-normal">Cashier number</th>
+            <th class="px-4 py-3 text-left font-normal">Receipt number</th>
+            <th class="px-4 py-3 text-left font-normal">Source of Materials</th>
           </tr>
         </thead>
         <tbody>
@@ -38,22 +63,19 @@
             @for (row of skeletonRows; track $index) {
               <tr class="border-b last:border-0">
                 <td class="px-4 py-3">
-                  <div hlmSkeleton class="h-4 w-16 rounded"></div>
-                </td>
-                <td class="px-4 py-3">
-                  <div hlmSkeleton class="h-4 w-16 rounded"></div>
-                </td>
-                <td class="px-4 py-3">
-                  <div hlmSkeleton class="h-4 w-16 rounded"></div>
+                  <div hlmSkeleton class="h-4 w-20 rounded"></div>
                 </td>
                 <td class="px-4 py-3">
                   <div hlmSkeleton class="h-6 w-16 rounded-full"></div>
                 </td>
                 <td class="px-4 py-3">
+                  <div hlmSkeleton class="h-4 w-28 rounded"></div>
+                </td>
+                <td class="px-4 py-3">
                   <div hlmSkeleton class="h-4 w-24 rounded"></div>
                 </td>
                 <td class="px-4 py-3">
-                  <div hlmSkeleton class="h-4 w-28 rounded"></div>
+                  <div hlmSkeleton class="h-4 w-24 rounded"></div>
                 </td>
                 <td class="px-4 py-3">
                   <div hlmSkeleton class="h-4 w-32 rounded"></div>
@@ -61,50 +83,32 @@
               </tr>
             }
           } @else {
-            @for (i of store.entities(); track i.id) {
+            @for (payment of store.entities(); track payment.id) {
               <tr class="border-b last:border-0 hover:bg-muted/50">
                 <td class="px-4 py-3 font-medium whitespace-nowrap">
-                  {{ i.actual_volume }} m³
-                </td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  {{ i.allowed_volume }} m³
-                </td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  {{
-                    i.actual_volume > i.allowed_volume
-                      ? (i.actual_volume - i.allowed_volume) + ' m³'
-                      : '—'
-                  }}
+                  ₱{{ payment.amount | number: '1.2-2' }}
                 </td>
                 <td class="px-4 py-3">
-                  <span
-                    class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium"
-                    [class]="
-                      i.actual_volume > i.allowed_volume
-                        ? 'bg-destructive/10 text-destructive border-destructive/20'
-                        : 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                    "
-                  >
-                    {{ i.actual_volume > i.allowed_volume ? 'Over' : 'Within' }}
+                  <span [class]="paymentStatusBadge(payment.payment_status)">
+                    {{ payment.payment_status }}
                   </span>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  {{ i.inspection_date | date: 'MMM d, y' }}
+                  {{ payment.payment_date | date: 'MMM d, y' }}
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  {{ i.inspector?.name ?? '—' }}
-                </td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  {{ i.createdAt | date: 'MMM d, y · h:mm a' }}
+                <td class="px-4 py-3">{{ payment.cashier_number }}</td>
+                <td class="px-4 py-3">{{ payment.receipt_number }}</td>
+                <td class="px-4 py-3">
+                  {{ payment.source_of_material || '—' }}
                 </td>
               </tr>
             } @empty {
               <tr>
-                <td class="text-muted-foreground px-4 py-6 text-center" colspan="7">
+                <td class="text-muted-foreground px-4 py-6 text-center" colspan="6">
                   @if (store.error()) {
                     {{ store.error() }}
                   } @else {
-                    No inspections yet.
+                    No payments yet.
                   }
                 </td>
               </tr>

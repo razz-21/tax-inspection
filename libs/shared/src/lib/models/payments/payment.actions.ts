@@ -17,13 +17,19 @@ import {
 export const postPaymentSchema = paymentSchema.omit({
   id: true,
   created_by: true,
+  source_of_material: true,
   createdAt: true,
 });
 export type PostPayment = z.infer<typeof postPaymentSchema>;
 
 /** PATCH /payments/:id — partial update. `id` comes from the route. */
 export const patchPaymentSchema = paymentSchema
-  .omit({ id: true, created_by: true, createdAt: true })
+  .omit({
+    id: true,
+    created_by: true,
+    source_of_material: true,
+    createdAt: true,
+  })
   .partial();
 export type PatchPayment = z.infer<typeof patchPaymentSchema>;
 

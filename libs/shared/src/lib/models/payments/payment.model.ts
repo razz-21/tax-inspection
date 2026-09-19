@@ -21,6 +21,8 @@ export const paymentSchema = z.object({
   receipt_number: z.string().min(1),
   /** FK to the user who recorded the payment (set server-side from token). */
   created_by: z.uuid(),
+  /** Resolved source of material from the linked delivery; populated on query. */
+  source_of_material: z.string().nullable().default(null),
   createdAt: z.iso.datetime(),
 });
 export type Payment = z.infer<typeof paymentSchema>;

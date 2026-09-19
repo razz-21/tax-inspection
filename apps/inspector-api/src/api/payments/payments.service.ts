@@ -25,14 +25,43 @@ interface PaymentDoc {
   created_at: string;
 }
 
+/** Minimal delivery shape needed to resolve the source of material. */
+interface DeliveryRef {
+  _id: string;
+  materials?: { source_of_material?: string };
+}
+
 const collection = (): Collection<PaymentDoc> =>
   getDb().collection<PaymentDoc>('payments');
 
 const toIso = (value: unknown): string =>
   value instanceof Date ? value.toISOString() : String(value ?? nowIso());
 
+/**
+ * Resolve `delivery_id` ids to their source of material in one query.
+ * Returns a map keyed by delivery id.
+ */
+async function sourceOfMaterialMap(
+  ids: string[],
+): Promise<Map<string, string>> {
+  const unique = [...new Set(ids)].filter(Boolean);
+  if (unique.length === 0) return new Map();
+
+  const deliveries = await getDb()
+    .collection<DeliveryRef>('deliveries')
+    .find({ _id: { $in: unique } })
+    .toArray();
+
+  return new Map(
+    deliveries.map((d) => [d._id, d.materials?.source_of_material ?? '']),
+  );
+}
+
 /** Map a Mongo document to the domain `Payment`. */
-function toDomain(doc: PaymentDoc): Payment {
+function toDomain(
+  doc: PaymentDoc,
+  sourceOfMaterial: string | null = null,
+): Payment {
   return {
     id: typeof doc._id === 'string' ? doc._id : String(doc._id),
     delivery_id: doc.delivery_id,
@@ -43,6 +72,7 @@ function toDomain(doc: PaymentDoc): Payment {
     cashier_number: doc.cashier_number,
     receipt_number: doc.receipt_number,
     created_by: doc.created_by,
+    source_of_material: sourceOfMaterial,
     createdAt: toIso(doc.created_at),
   };
 }
@@ -68,15 +98,19 @@ export const paymentsService = {
       col.countDocuments(filter),
     ]);
 
+    const sources = await sourceOfMaterialMap(docs.map((d) => d.delivery_id));
+
     return {
-      data: docs.map(toDomain),
+      data: docs.map((d) => toDomain(d, sources.get(d.delivery_id) ?? null)),
       meta: buildPaginationMeta(total, { page, limit, offset }),
     };
   },
 
   async findById(id: string): Promise<Payment | null> {
     const doc = await collection().findOne({ _id: id });
-    return doc ? toDomain(doc) : null;
+    if (!doc) return null;
+    const sources = await sourceOfMaterialMap([doc.delivery_id]);
+    return toDomain(doc, sources.get(doc.delivery_id) ?? null);
   },
 
   async create(input: PostPayment, createdBy: string): Promise<Payment> {
@@ -94,7 +128,8 @@ export const paymentsService = {
     };
 
     await collection().insertOne(doc);
-    return toDomain(doc);
+    const sources = await sourceOfMaterialMap([doc.delivery_id]);
+    return toDomain(doc, sources.get(doc.delivery_id) ?? null);
   },
 
   async update(id: string, patch: PatchPayment): Promise<Payment | null> {
@@ -106,7 +141,9 @@ export const paymentsService = {
       { returnDocument: 'after' },
     );
 
-    return doc ? toDomain(doc) : null;
+    if (!doc) return null;
+    const sources = await sourceOfMaterialMap([doc.delivery_id]);
+    return toDomain(doc, sources.get(doc.delivery_id) ?? null);
   },
 
   async remove(id: string): Promise<boolean> {
