@@ -406,30 +406,68 @@
           <div class="border-b px-5 py-3.5">
             <h2 class="font-semibold">Payment</h2>
           </div>
-          @if (payment(); as p) {
-            <dl class="divide-y px-5 py-1">
-              <div class="flex justify-between gap-3 py-2.5 text-sm">
-                <dt class="text-muted-foreground">Account number</dt>
-                <dd class="text-right font-semibold">{{ p.accountNumber }}</dd>
-              </div>
-              <div class="flex justify-between gap-3 py-2.5 text-sm">
-                <dt class="text-muted-foreground">Payment date</dt>
-                <dd class="text-right font-semibold">
-                  {{ p.paymentDate | date: 'MMM d, y' }}
-                </dd>
-              </div>
-              <div class="flex justify-between gap-3 py-2.5 text-sm">
-                <dt class="text-muted-foreground">Cashier number</dt>
-                <dd class="text-right font-semibold">{{ p.cashierNumber }}</dd>
-              </div>
-              <div class="flex justify-between gap-3 py-2.5 text-sm">
-                <dt class="text-muted-foreground">Receipt number</dt>
-                <dd class="text-right font-semibold">{{ p.receiptNumber }}</dd>
-              </div>
-            </dl>
-            <div class="px-5 pb-5">
-              <button hlmBtn variant="outline" class="w-full" (click)="openPayment()">
-                Update payment
+          @if (payments().length) {
+            <div class="divide-y">
+              @for (p of payments(); track p.id) {
+                <div class="px-5 py-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <p class="text-xl font-bold">
+                      ₱{{ p.amount | number: '1.2-2' }}
+                    </p>
+                    <div class="flex items-center gap-1.5">
+                      <span [class]="paymentStatusBadge(p.payment_status)">
+                        {{ p.payment_status }}
+                      </span>
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="Edit payment"
+                        (click)="openPaymentForEdit(p)"
+                      >
+                        <ng-icon name="lucidePencil" size="1rem" />
+                      </button>
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="icon-sm"
+                        class="text-destructive hover:text-destructive"
+                        aria-label="Delete payment"
+                        (click)="pendingDeletePayment.set(p)"
+                      >
+                        <ng-icon name="lucideTrash2" size="1rem" />
+                      </button>
+                    </div>
+                  </div>
+                  <dl class="mt-2 space-y-1 text-sm">
+                    <div class="flex justify-between gap-3">
+                      <dt class="text-muted-foreground">Payment date</dt>
+                      <dd class="font-medium">
+                        {{ p.payment_date | date: 'MMM d, y' }}
+                      </dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <dt class="text-muted-foreground">Cashier number</dt>
+                      <dd class="font-medium">{{ p.cashier_number }}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <dt class="text-muted-foreground">Receipt number</dt>
+                      <dd class="font-medium">{{ p.receipt_number }}</dd>
+                    </div>
+                  </dl>
+                </div>
+              }
+            </div>
+            <div class="border-t px-5 py-4">
+              <button
+                hlmBtn
+                variant="outline"
+                class="w-full"
+                [disabled]="!assessment()"
+                (click)="openPayment()"
+              >
+                <ng-icon name="lucidePlus" size="1rem" class="mr-1" />
+                Add payment
               </button>
             </div>
           } @else {
@@ -441,9 +479,18 @@
               </span>
               <p class="font-semibold">No payment recorded</p>
               <p class="text-xs text-muted-foreground">
-                Payments for this delivery will appear here.
+                @if (assessment()) {
+                  Payments for this delivery will appear here.
+                } @else {
+                  Calculate the tax assessment before recording a payment.
+                }
               </p>
-              <button hlmBtn class="mt-2" (click)="openPayment()">
+              <button
+                hlmBtn
+                class="mt-2"
+                [disabled]="!assessment()"
+                (click)="openPayment()"
+              >
                 <ng-icon name="lucidePlus" size="1rem" class="mr-1" />
                 Add payment
               </button>
@@ -454,165 +501,37 @@
     </div>
   </div>
 
-  <!-- Record payment dialog -->
-  <hlm-alert-dialog
-    [state]="paymentOpen() ? 'open' : 'closed'"
+  <!-- Record / edit payment dialog -->
+  <app-payment-dialog
+    [open]="paymentOpen()"
+    [editing]="editingPayment()"
+    [maxAmount]="assessedTax()"
+    [saving]="savingPayment()"
+    (save)="onPaymentSave($event)"
     (closed)="paymentOpen.set(false)"
-  >
-    <hlm-alert-dialog-content *brnAlertDialogContent class="w-full sm:max-w-2xl">
-      <div hlmAlertDialogHeader>
-        <h3 hlmAlertDialogTitle>Record payment</h3>
-        <p hlmAlertDialogDescription>
-          Enter the payment details for this delivery.
-        </p>
-      </div>
+  />
 
-      <form class="space-y-4 py-2" (submit)="$event.preventDefault(); savePayment()">
-        @let accountField = paymentForm.accountNumber();
-        @let dateField = paymentForm.paymentDate();
-        @let cashierField = paymentForm.cashierNumber();
-        @let receiptField = paymentForm.receiptNumber();
-
-        <!-- Account number -->
-        <div class="space-y-2">
-          <label
-            hlmLabel
-            for="payment-account"
-            [class.text-destructive]="accountField.touched() && accountField.invalid()"
-          >
-            Account number
-          </label>
-          <input
-            hlmInput
-            id="payment-account"
-            class="w-full"
-            placeholder="Enter account number"
-            [formField]="paymentForm.accountNumber"
-            [forceInvalid]="accountField.touched() && accountField.invalid()"
-          />
-          @if (accountField.touched() && accountField.invalid()) {
-            <p class="text-sm text-destructive">
-              {{ accountField.errors()[0]?.message }}
-            </p>
-          }
-        </div>
-
-        <!-- Payment date -->
-        <div class="space-y-2">
-          <label
-            hlmLabel
-            for="payment-date"
-            [class.text-destructive]="dateField.touched() && dateField.invalid()"
-          >
-            Payment date
-          </label>
-          <hlm-date-picker
-            autoCloseOnSelect
-            [date]="dateField.value() ?? undefined"
-            (dateChange)="selectPaymentDate($event)"
-          >
-            <hlm-date-picker-trigger buttonId="payment-date" class="w-full">
-              Pick a date
-            </hlm-date-picker-trigger>
-          </hlm-date-picker>
-          @if (dateField.touched() && dateField.invalid()) {
-            <p class="text-sm text-destructive">
-              {{ dateField.errors()[0]?.message }}
-            </p>
-          }
-        </div>
-
-        <!-- Cashier number -->
-        <div class="space-y-2">
-          <label
-            hlmLabel
-            for="payment-cashier"
-            [class.text-destructive]="cashierField.touched() && cashierField.invalid()"
-          >
-            Cashier number
-          </label>
-          <input
-            hlmInput
-            id="payment-cashier"
-            class="w-full"
-            placeholder="Enter cashier number"
-            [formField]="paymentForm.cashierNumber"
-            [forceInvalid]="cashierField.touched() && cashierField.invalid()"
-          />
-          @if (cashierField.touched() && cashierField.invalid()) {
-            <p class="text-sm text-destructive">
-              {{ cashierField.errors()[0]?.message }}
-            </p>
-          }
-        </div>
-
-        <!-- Receipt number -->
-        <div class="space-y-2">
-          <label
-            hlmLabel
-            for="payment-receipt"
-            [class.text-destructive]="receiptField.touched() && receiptField.invalid()"
-          >
-            Receipt number
-          </label>
-          <input
-            hlmInput
-            id="payment-receipt"
-            class="w-full"
-            placeholder="Enter receipt number"
-            [formField]="paymentForm.receiptNumber"
-            [forceInvalid]="receiptField.touched() && receiptField.invalid()"
-          />
-          @if (receiptField.touched() && receiptField.invalid()) {
-            <p class="text-sm text-destructive">
-              {{ receiptField.errors()[0]?.message }}
-            </p>
-          }
-        </div>
-      </form>
-
-      <div hlmAlertDialogFooter>
-        <button hlmBtn variant="secondary" type="button" (click)="paymentOpen.set(false)">
-          Cancel
-        </button>
-        <button hlmBtn type="button" (click)="savePayment()">Save payment</button>
-      </div>
-    </hlm-alert-dialog-content>
-  </hlm-alert-dialog>
+  <!-- Delete payment confirmation -->
+  <app-confirm-dialog
+    [open]="!!pendingDeletePayment()"
+    title="Delete payment?"
+    description="Are you sure you want to delete this payment? This action cannot be undone."
+    confirmLabel="Delete"
+    pendingLabel="Deleting…"
+    [pending]="deletingPayment()"
+    (confirmed)="deletePayment()"
+    (cancelled)="pendingDeletePayment.set(null)"
+  />
 
   <!-- Delete tax assessment confirmation -->
-  <hlm-alert-dialog
-    [state]="confirmDeleteAssessment() ? 'open' : 'closed'"
-    (closed)="confirmDeleteAssessment.set(false)"
-  >
-    <hlm-alert-dialog-content *brnAlertDialogContent>
-      <div hlmAlertDialogHeader>
-        <h3 hlmAlertDialogTitle>Delete tax assessment?</h3>
-        <p hlmAlertDialogDescription>
-          Are you sure you want to delete this tax assessment? This action
-          cannot be undone.
-        </p>
-      </div>
-      <div hlmAlertDialogFooter>
-        <button
-          hlmBtn
-          variant="secondary"
-          type="button"
-          [disabled]="deletingAssessment()"
-          (click)="confirmDeleteAssessment.set(false)"
-        >
-          Cancel
-        </button>
-        <button
-          hlmBtn
-          variant="destructive"
-          type="button"
-          [disabled]="deletingAssessment()"
-          (click)="deleteAssessment()"
-        >
-          {{ deletingAssessment() ? 'Deleting…' : 'Delete' }}
-        </button>
-      </div>
-    </hlm-alert-dialog-content>
-  </hlm-alert-dialog>
+  <app-confirm-dialog
+    [open]="confirmDeleteAssessment()"
+    title="Delete tax assessment?"
+    description="Are you sure you want to delete this tax assessment? This action cannot be undone."
+    confirmLabel="Delete"
+    pendingLabel="Deleting…"
+    [pending]="deletingAssessment()"
+    (confirmed)="deleteAssessment()"
+    (cancelled)="confirmDeleteAssessment.set(false)"
+  />
 }

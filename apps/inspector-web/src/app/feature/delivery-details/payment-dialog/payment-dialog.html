@@ -1,0 +1,172 @@
+<hlm-alert-dialog
+  [state]="open() ? 'open' : 'closed'"
+  (closed)="closed.emit()"
+>
+  <hlm-alert-dialog-content *brnAlertDialogContent class="w-full sm:max-w-2xl">
+    <div hlmAlertDialogHeader>
+      <h3 hlmAlertDialogTitle>
+        {{ editing() ? 'Edit payment' : 'Record payment' }}
+      </h3>
+      <p hlmAlertDialogDescription>
+        Enter the payment details for this delivery.
+      </p>
+    </div>
+
+    <form class="space-y-4 py-2" (submit)="$event.preventDefault(); onSubmit()">
+      @let amountField = paymentForm.amount();
+      @let dateField = paymentForm.paymentDate();
+      @let statusField = paymentForm.paymentStatus();
+      @let cashierField = paymentForm.cashierNumber();
+      @let receiptField = paymentForm.receiptNumber();
+
+      <!-- Amount -->
+      <div class="space-y-2">
+        <label
+          hlmLabel
+          for="payment-amount"
+          [class.text-destructive]="amountField.touched() && amountField.invalid()"
+        >
+          Amount
+        </label>
+        <div class="relative">
+          <span
+            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          >
+            ₱
+          </span>
+          <input
+            hlmInput
+            id="payment-amount"
+            type="number"
+            step="any"
+            inputmode="decimal"
+            class="w-full pl-7"
+            placeholder="0.00"
+            [formField]="paymentForm.amount"
+            [forceInvalid]="amountField.touched() && amountField.invalid()"
+          />
+        </div>
+        @if (amountField.touched() && amountField.invalid()) {
+          <p class="text-sm text-destructive">
+            {{ amountField.errors()[0]?.message }}
+          </p>
+        }
+      </div>
+
+      <!-- Payment status -->
+      <div class="space-y-2">
+        <label hlmLabel>Payment status</label>
+        <div class="grid grid-cols-3 gap-2">
+          @for (status of paymentStatuses; track status) {
+            <button
+              type="button"
+              (click)="selectPaymentStatus(status)"
+              class="rounded-lg border px-3 py-2 text-sm font-medium transition"
+              [class]="
+                statusField.value() === status
+                  ? 'border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-950/30 dark:text-violet-300'
+                  : 'border-input text-foreground hover:bg-accent'
+              "
+            >
+              {{ status }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Payment date -->
+      <div class="space-y-2">
+        <label
+          hlmLabel
+          for="payment-date"
+          [class.text-destructive]="dateField.touched() && dateField.invalid()"
+        >
+          Payment date
+        </label>
+        <hlm-date-picker
+          autoCloseOnSelect
+          [date]="dateField.value() ?? undefined"
+          (dateChange)="selectPaymentDate($event)"
+        >
+          <hlm-date-picker-trigger buttonId="payment-date" class="w-full">
+            Pick a date
+          </hlm-date-picker-trigger>
+        </hlm-date-picker>
+        @if (dateField.touched() && dateField.invalid()) {
+          <p class="text-sm text-destructive">
+            {{ dateField.errors()[0]?.message }}
+          </p>
+        }
+      </div>
+
+      <!-- Cashier number -->
+      <div class="space-y-2">
+        <label
+          hlmLabel
+          for="payment-cashier"
+          [class.text-destructive]="cashierField.touched() && cashierField.invalid()"
+        >
+          Cashier number
+        </label>
+        <input
+          hlmInput
+          id="payment-cashier"
+          class="w-full"
+          placeholder="Enter cashier number"
+          [formField]="paymentForm.cashierNumber"
+          [forceInvalid]="cashierField.touched() && cashierField.invalid()"
+        />
+        @if (cashierField.touched() && cashierField.invalid()) {
+          <p class="text-sm text-destructive">
+            {{ cashierField.errors()[0]?.message }}
+          </p>
+        }
+      </div>
+
+      <!-- Receipt number -->
+      <div class="space-y-2">
+        <label
+          hlmLabel
+          for="payment-receipt"
+          [class.text-destructive]="receiptField.touched() && receiptField.invalid()"
+        >
+          Receipt number
+        </label>
+        <input
+          hlmInput
+          id="payment-receipt"
+          class="w-full"
+          placeholder="Enter receipt number"
+          [formField]="paymentForm.receiptNumber"
+          [forceInvalid]="receiptField.touched() && receiptField.invalid()"
+        />
+        @if (receiptField.touched() && receiptField.invalid()) {
+          <p class="text-sm text-destructive">
+            {{ receiptField.errors()[0]?.message }}
+          </p>
+        }
+      </div>
+    </form>
+
+    <div hlmAlertDialogFooter>
+      <button
+        hlmBtn
+        variant="secondary"
+        type="button"
+        [disabled]="saving()"
+        (click)="closed.emit()"
+      >
+        Cancel
+      </button>
+      <button hlmBtn type="button" [disabled]="saving()" (click)="onSubmit()">
+        {{
+          saving()
+            ? 'Saving…'
+            : editing()
+              ? 'Save changes'
+              : 'Save payment'
+        }}
+      </button>
+    </div>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

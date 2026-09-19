@@ -21,3 +21,7 @@ export * from './delivery-inspections/delivery-inspections.actions';
 // Entity: tax-assessments
 export * from './tax-assessments/tax-assessment.model';
 export * from './tax-assessments/tax-assessment.actions';
+
+// Entity: payments
+export * from './payments/payment.model';
+export * from './payments/payment.actions';

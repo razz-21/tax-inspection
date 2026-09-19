@@ -16,6 +16,7 @@ import { usersRoutes } from './api/users/users.routes';
 import { deliveriesRoutes } from './api/deliveries/deliveries.routes';
 import { deliveryInspectionsRoutes } from './api/delivery-inspections/delivery-inspections.routes';
 import { taxAssessmentsRoutes } from './api/tax-assessments/tax-assessments.routes';
+import { paymentsRoutes } from './api/payments/payments.routes';
 
 const app = new Hono();
 
@@ -48,6 +49,7 @@ app.route(`${API_PREFIX}/users`, usersRoutes);
 app.route(`${API_PREFIX}/deliveries`, deliveriesRoutes);
 app.route(`${API_PREFIX}/delivery-inspections`, deliveryInspectionsRoutes);
 app.route(`${API_PREFIX}/tax-assessments`, taxAssessmentsRoutes);
+app.route(`${API_PREFIX}/payments`, paymentsRoutes);
 
 async function bootstrap() {
   await connectToDatabase();
