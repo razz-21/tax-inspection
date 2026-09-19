@@ -10,6 +10,36 @@ import {
   type Payment,
 } from './payment.model';
 
+/** Selectable date ranges for filtering payments (by `payment_date`). */
+export const PAYMENT_RANGES = [
+  'today',
+  'yesterday',
+  'this_week',
+  'last_week',
+  'two_weeks',
+  'this_month',
+  'last_month',
+  'this_quarter',
+  'last_quarter',
+  'this_year',
+] as const;
+export const paymentRangeSchema = z.enum(PAYMENT_RANGES);
+export type PaymentRange = z.infer<typeof paymentRangeSchema>;
+
+/** Human labels for each range (shared by API + UI). */
+export const PAYMENT_RANGE_LABELS: Record<PaymentRange, string> = {
+  today: 'Today',
+  yesterday: 'Yesterday',
+  this_week: 'This week',
+  last_week: 'Last Week',
+  two_weeks: '2 Weeks',
+  this_month: 'This Month',
+  last_month: 'Last Month',
+  this_quarter: 'This Quarter',
+  last_quarter: 'Last Quarter',
+  this_year: 'This Year',
+};
+
 /**
  * POST /payments — create body. The server generates `id`, sets `created_by`
  * from the authenticated user, and the `createdAt` timestamp.
@@ -45,9 +75,12 @@ export type DeletePayment = z.infer<typeof deletePaymentSchema>;
 export const getPaymentsSchema = paginationQuerySchema.extend({
   delivery_id: z.uuid().optional(),
   payment_status: paymentStatusSchema.optional(),
+  range: paymentRangeSchema.optional(),
 });
 export type GetPayments = z.infer<typeof getPaymentsSchema>;
 
-/** GET /payments response — a paginated list of payments. */
-export const getPaymentsResponseSchema = paginatedSchema(paymentSchema);
-export type GetPaymentsResponse = Paginated<Payment>;
+/** GET /payments response — a paginated list plus the total amount for the filter. */
+export const getPaymentsResponseSchema = paginatedSchema(paymentSchema).extend({
+  totalAmount: z.number(),
+});
+export type GetPaymentsResponse = Paginated<Payment> & { totalAmount: number };

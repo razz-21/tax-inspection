@@ -6,33 +6,40 @@
     </p>
   </header>
 
-  <!-- Toolbar: status filter (left) + reload (right) -->
-  <div class="flex items-center justify-between gap-3">
-    <div class="flex flex-wrap gap-2">
-      <button
-        class="rounded-lg border px-3 py-1.5 text-sm font-medium transition"
-        [class]="
-          activeStatus() === 'all'
-            ? 'border-primary bg-primary text-primary-foreground'
-            : 'border-input text-foreground hover:bg-accent'
-        "
-        (click)="filterByStatus('all')"
+  <!-- Toolbar: status + date-range filters (left) + reload (right) -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Status filter -->
+      <hlm-select
+        [value]="activeStatus()"
+        (valueChange)="filterByStatus($any($event))"
       >
-        All
-      </button>
-      @for (status of statuses; track status) {
-        <button
-          class="rounded-lg border px-3 py-1.5 text-sm font-medium transition"
-          [class]="
-            activeStatus() === status
-              ? 'border-primary bg-primary text-primary-foreground'
-              : 'border-input text-foreground hover:bg-accent'
-          "
-          (click)="filterByStatus(status)"
-        >
-          {{ status }}
-        </button>
-      }
+        <hlm-select-trigger class="w-40!">{{ statusLabel() }}</hlm-select-trigger>
+        <hlm-select-content *hlmSelectPortal>
+          <hlm-select-group>
+            <hlm-select-item value="all">All statuses</hlm-select-item>
+            @for (status of statuses; track status) {
+              <hlm-select-item [value]="status">{{ status }}</hlm-select-item>
+            }
+          </hlm-select-group>
+        </hlm-select-content>
+      </hlm-select>
+
+      <!-- Date range filter -->
+      <hlm-select
+        [value]="activeRange()"
+        (valueChange)="filterByRange($any($event))"
+      >
+        <hlm-select-trigger class="w-44!">{{ rangeLabel() }}</hlm-select-trigger>
+        <hlm-select-content *hlmSelectPortal>
+          <hlm-select-group>
+            <hlm-select-item value="all">All dates</hlm-select-item>
+            @for (r of ranges; track r.value) {
+              <hlm-select-item [value]="r.value">{{ r.label }}</hlm-select-item>
+            }
+          </hlm-select-group>
+        </hlm-select-content>
+      </hlm-select>
     </div>
     <button hlmBtn [loading]="store.loading()" (click)="reload()">
       @if (!store.loading()) {
@@ -116,6 +123,21 @@
             }
           }
         </tbody>
+        @if (!store.loading()) {
+          <tfoot class="border-t bg-muted/30">
+            <tr>
+              <td class="px-4 py-3 font-semibold whitespace-nowrap">
+                ₱{{ store.totalAmount() | number: '1.2-2' }}
+              </td>
+              <td class="text-muted-foreground px-4 py-3 text-xs" colspan="5">
+                Total for current filter
+                @if (store.meta(); as meta) {
+                  · {{ meta.total }} payment{{ meta.total === 1 ? '' : 's' }}
+                }
+              </td>
+            </tr>
+          </tfoot>
+        }
       </table>
     </div>
   </div>

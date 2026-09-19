@@ -25,15 +25,24 @@ interface PaymentsState {
   error: string | null;
   query: Partial<GetPayments>;
   meta: PaginationMeta | null;
+  /** Sum of amounts across the whole current filter (not just the page). */
+  totalAmount: number;
 }
 
 const initialState: PaymentsState = {
   loading: false,
   loaded: false,
   error: null,
-  // Newest payments first.
-  query: { page: 1, limit: 12, sortBy: 'created_at', sortOrder: 'desc' },
+  // Newest payments first, scoped to this week by default.
+  query: {
+    page: 1,
+    limit: 12,
+    sortBy: 'created_at',
+    sortOrder: 'desc',
+    range: 'this_week',
+  },
   meta: null,
+  totalAmount: 0,
 };
 
 export const PaymentsStore = signalStore(
@@ -57,7 +66,12 @@ export const PaymentsStore = signalStore(
     })),
     on(paymentsApiEvents.loadedSuccess, ({ payload }) => [
       setAllEntities(payload.data),
-      { loading: false, loaded: true, meta: payload.meta },
+      {
+        loading: false,
+        loaded: true,
+        meta: payload.meta,
+        totalAmount: payload.totalAmount,
+      },
     ]),
     on(paymentsApiEvents.loadedFailure, ({ payload }) => ({
       loading: false,

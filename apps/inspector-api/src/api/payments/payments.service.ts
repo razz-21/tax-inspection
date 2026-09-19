@@ -7,6 +7,7 @@ import {
   type GetPaymentsResponse,
   type Payment,
   type PatchPayment,
+  type PaymentRange,
   type PaymentStatus,
   type PostPayment,
 } from '@tax-inspection/shared';
@@ -77,14 +78,88 @@ function toDomain(
   };
 }
 
+const pad = (n: number): string => String(n).padStart(2, '0');
+const ymd = (d: Date): string =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+/** Resolve a payment range to inclusive-start / exclusive-end `yyyy-mm-dd` bounds. */
+function paymentDateBounds(range: PaymentRange): { start: string; end: string } {
+  const now = new Date();
+  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const q = Math.floor(m / 3);
+  let start: Date;
+  let end: Date;
+  switch (range) {
+    case 'today':
+      start = day;
+      end = new Date(y, m, day.getDate() + 1);
+      break;
+    case 'yesterday':
+      start = new Date(y, m, day.getDate() - 1);
+      end = day;
+      break;
+    case 'this_week': {
+      const mondayOffset = (day.getDay() + 6) % 7;
+      start = new Date(y, m, day.getDate() - mondayOffset);
+      end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7);
+      break;
+    }
+    case 'last_week': {
+      const mondayOffset = (day.getDay() + 6) % 7;
+      end = new Date(y, m, day.getDate() - mondayOffset);
+      start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 7);
+      break;
+    }
+    case 'two_weeks':
+      start = new Date(y, m, day.getDate() - 13);
+      end = new Date(y, m, day.getDate() + 1);
+      break;
+    case 'this_month':
+      start = new Date(y, m, 1);
+      end = new Date(y, m + 1, 1);
+      break;
+    case 'last_month':
+      start = new Date(y, m - 1, 1);
+      end = new Date(y, m, 1);
+      break;
+    case 'this_quarter':
+      start = new Date(y, q * 3, 1);
+      end = new Date(y, q * 3 + 3, 1);
+      break;
+    case 'last_quarter':
+      start = new Date(y, q * 3 - 3, 1);
+      end = new Date(y, q * 3, 1);
+      break;
+    case 'this_year':
+      start = new Date(y, 0, 1);
+      end = new Date(y + 1, 0, 1);
+      break;
+  }
+  return { start: ymd(start), end: ymd(end) };
+}
+
 export const paymentsService = {
   async list(query: GetPayments): Promise<GetPaymentsResponse> {
-    const { limit, page, offset, sortBy, sortOrder, delivery_id, payment_status } =
-      query;
+    const {
+      limit,
+      page,
+      offset,
+      sortBy,
+      sortOrder,
+      delivery_id,
+      payment_status,
+      range,
+    } = query;
 
     const filter: Record<string, unknown> = {};
     if (delivery_id) filter['delivery_id'] = delivery_id;
     if (payment_status) filter['payment_status'] = payment_status;
+    if (range) {
+      const { start, end } = paymentDateBounds(range);
+      filter['payment_date'] = { $gte: start, $lt: end };
+    }
 
     const skip = offset ?? (page - 1) * limit;
     const sortField = sortBy ?? 'created_at';
@@ -93,9 +168,15 @@ export const paymentsService = {
     };
 
     const col = collection();
-    const [docs, total] = await Promise.all([
+    const [docs, total, amountAgg] = await Promise.all([
       col.find(filter).sort(sort).skip(skip).limit(limit).toArray(),
       col.countDocuments(filter),
+      col
+        .aggregate<{ total: number }>([
+          { $match: filter },
+          { $group: { _id: null, total: { $sum: '$amount' } } },
+        ])
+        .toArray(),
     ]);
 
     const sources = await sourceOfMaterialMap(docs.map((d) => d.delivery_id));
@@ -103,6 +184,7 @@ export const paymentsService = {
     return {
       data: docs.map((d) => toDomain(d, sources.get(d.delivery_id) ?? null)),
       meta: buildPaginationMeta(total, { page, limit, offset }),
+      totalAmount: amountAgg[0]?.total ?? 0,
     };
   },
 

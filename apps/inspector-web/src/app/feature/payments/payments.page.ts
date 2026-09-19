@@ -13,9 +13,13 @@ import { lucideRefreshCw } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
+import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import {
+  PAYMENT_RANGE_LABELS,
+  PAYMENT_RANGES,
   PAYMENT_STATUSES,
+  type PaymentRange,
   type PaymentStatus,
 } from '@tax-inspection/shared';
 import { PaymentsStore } from '../../store/payments/payments.store';
@@ -30,6 +34,7 @@ import { paymentsPageEvents } from '../../store/payments/payments.events';
     HlmButtonImports,
     HlmCardImports,
     HlmPaginationImports,
+    HlmSelectImports,
     HlmSkeletonImports,
   ],
   providers: [provideIcons({ lucideRefreshCw })],
@@ -44,11 +49,37 @@ export class PaymentsPage implements OnInit {
   /** Currently active status filter, or 'all'. */
   protected readonly activeStatus = signal<PaymentStatus | 'all'>('all');
 
+  /** Date-range filter options + current selection ('all' = no range). */
+  protected readonly ranges = PAYMENT_RANGES.map((value) => ({
+    value,
+    label: PAYMENT_RANGE_LABELS[value],
+  }));
+  protected readonly activeRange = signal<PaymentRange | 'all'>('this_week');
+
+  /** Labels shown in the (closed) dropdown triggers. */
+  protected readonly statusLabel = computed(() =>
+    this.activeStatus() === 'all' ? 'All statuses' : this.activeStatus(),
+  );
+  protected readonly rangeLabel = computed(() => {
+    const r = this.activeRange();
+    return r === 'all' ? 'All dates' : PAYMENT_RANGE_LABELS[r];
+  });
+
   /** Placeholder rows rendered while the table is loading. */
   protected readonly skeletonRows = Array.from({ length: 6 });
 
   ngOnInit(): void {
     this.dispatcher.dispatch(paymentsPageEvents.opened());
+  }
+
+  protected filterByRange(range: PaymentRange | 'all'): void {
+    this.activeRange.set(range);
+    this.dispatcher.dispatch(
+      paymentsPageEvents.queryChanged({
+        range: range === 'all' ? undefined : range,
+        page: 1,
+      }),
+    );
   }
 
   protected filterByStatus(status: PaymentStatus | 'all'): void {
