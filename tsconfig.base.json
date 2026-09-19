@@ -93,6 +93,9 @@
       ],
       "@spartan-ng/helm/item": [
         "./libs/ui/item/src/index.ts"
+      ],
+      "@spartan-ng/helm/chart": [
+        "./libs/ui/chart/src/index.ts"
       ]
     }
   },

@@ -29,3 +29,6 @@ export * from './payments/payment.actions';
 // Entity: source-of-materials
 export * from './source-of-materials/source-of-material.model';
 export * from './source-of-materials/source-of-material.actions';
+
+// Dashboard (aggregated read model)
+export * from './dashboard/dashboard.model';

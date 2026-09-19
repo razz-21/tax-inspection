@@ -12,6 +12,7 @@ import { deliveryInspectionsRoutes } from './api/delivery-inspections/delivery-i
 import { taxAssessmentsRoutes } from './api/tax-assessments/tax-assessments.routes';
 import { paymentsRoutes } from './api/payments/payments.routes';
 import { sourceOfMaterialsRoutes } from './api/source-of-materials/source-of-materials.routes';
+import { dashboardRoutes } from './api/dashboard/dashboard.routes';
 
 const app = new Hono();
 
@@ -54,5 +55,6 @@ app.route(`${API_PREFIX}/delivery-inspections`, deliveryInspectionsRoutes);
 app.route(`${API_PREFIX}/tax-assessments`, taxAssessmentsRoutes);
 app.route(`${API_PREFIX}/payments`, paymentsRoutes);
 app.route(`${API_PREFIX}/source-of-materials`, sourceOfMaterialsRoutes);
+app.route(`${API_PREFIX}/dashboard`, dashboardRoutes);
 
 export default app;

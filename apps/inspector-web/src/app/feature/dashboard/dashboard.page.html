@@ -1,0 +1,243 @@
+<div class="space-y-5">
+  <!-- Greeting header -->
+  <header
+    class="from-primary/5 rounded-xl border bg-gradient-to-r to-transparent p-5"
+  >
+    <h2 class="text-2xl font-bold tracking-tight">{{ greeting() }}</h2>
+    <p class="text-muted-foreground text-sm">
+      {{ today }} · Zone 4 · Cagayan de Oro
+    </p>
+  </header>
+
+  <!-- Range filter + reload -->
+  <div class="flex items-center justify-between gap-3">
+    <div class="flex flex-wrap gap-2">
+      @for (r of ranges; track r.value) {
+        <button
+          class="rounded-lg border px-3 py-1.5 text-sm font-medium transition"
+          [class]="
+            store.range() === r.value
+              ? 'border-primary bg-primary text-primary-foreground'
+              : 'border-input text-foreground hover:bg-accent'
+          "
+          (click)="setRange(r.value)"
+        >
+          {{ r.label }}
+        </button>
+      }
+    </div>
+    <button
+      hlmBtn
+      variant="outline"
+      size="icon"
+      aria-label="Reload"
+      hlmTooltip="Reload data"
+      position="left"
+      [loading]="store.loading()"
+      (click)="reload()"
+    >
+      @if (!store.loading()) {
+        <ng-icon name="lucideRefreshCw" size="1rem" />
+      }
+    </button>
+  </div>
+
+  @let s = store.summary();
+
+  @if (store.error()) {
+    <div
+      class="border-destructive/30 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
+    >
+      {{ store.error() }}
+    </div>
+  }
+
+  @if (s) {
+    <!-- KPI cards -->
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- Deliveries -->
+      <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4 dark:border-indigo-900/40 dark:bg-indigo-950/20">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-medium text-indigo-700 dark:text-indigo-300">Deliveries</p>
+          <span class="flex size-7 items-center justify-center rounded-md bg-indigo-600 text-white">
+            <ng-icon name="lucideTruck" size="1rem" />
+          </span>
+        </div>
+        <p class="mt-1 text-3xl font-bold">{{ s.deliveries.count | number }}</p>
+        <p class="mt-1 text-xs text-indigo-700/80 dark:text-indigo-300/80">
+          @if (s.deliveries.deltaPct !== null) {
+            {{ s.deliveries.deltaPct >= 0 ? '+' : '' }}{{ s.deliveries.deltaPct }}% vs previous period
+          } @else {
+            No prior data to compare
+          }
+        </p>
+      </div>
+
+      <!-- Volume hauled -->
+      <div class="rounded-xl border border-amber-100 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-medium text-amber-700 dark:text-amber-300">Volume hauled</p>
+          <span class="flex size-7 items-center justify-center rounded-md bg-amber-500 text-white">
+            <ng-icon name="lucideMountain" size="1rem" />
+          </span>
+        </div>
+        <p class="mt-1 text-3xl font-bold">{{ s.volume | number }} m³</p>
+        <p class="mt-1 text-xs text-amber-700/80 dark:text-amber-300/80">
+          Cubic meters across all materials
+        </p>
+      </div>
+
+      <!-- Inspections passed -->
+      <div class="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Inspections passed</p>
+          <span class="flex size-7 items-center justify-center rounded-md bg-emerald-600 text-white">
+            <ng-icon name="lucideCheck" size="1rem" />
+          </span>
+        </div>
+        <p class="mt-1 text-3xl font-bold">{{ s.inspections.passed | number }}</p>
+        <p class="mt-1 text-xs text-emerald-700/80 dark:text-emerald-300/80">
+          {{ s.inspections.passRate }}% pass rate
+        </p>
+      </div>
+
+      <!-- Flagged -->
+      <div class="rounded-xl border border-rose-100 bg-rose-50/60 p-4 dark:border-rose-900/40 dark:bg-rose-950/20">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-medium text-rose-700 dark:text-rose-300">Flagged</p>
+          <span class="flex size-7 items-center justify-center rounded-md bg-rose-600 text-white">
+            <ng-icon name="lucideFlag" size="1rem" />
+          </span>
+        </div>
+        <p class="mt-1 text-3xl font-bold">{{ s.flagged | number }}</p>
+        <p class="mt-1 text-xs text-rose-700/80 dark:text-rose-300/80">
+          Needs officer review
+        </p>
+      </div>
+    </div>
+
+    <!-- Chart + material mix -->
+    <div class="grid gap-4 lg:grid-cols-3">
+      <!-- Deliveries per day -->
+      <div class="rounded-xl border bg-card p-5 lg:col-span-2">
+        <div class="mb-4">
+          <h3 class="font-semibold">Deliveries per day</h3>
+          <p class="text-muted-foreground text-xs">{{ rangeSubtitle() }}</p>
+        </div>
+
+        @if (s.deliveries.count === 0) {
+          <div class="flex h-60 items-center justify-center text-sm text-muted-foreground">
+            No deliveries in this period.
+          </div>
+        } @else {
+          <tanstack-chart hlmChart class="block w-full" [options]="chartOptions()" />
+        }
+      </div>
+
+      <!-- Material mix -->
+      <div class="rounded-xl border bg-amber-50/40 p-5 dark:bg-amber-950/10">
+        <h3 class="mb-4 font-semibold">Material mix</h3>
+        @if (s.materialMix.length === 0) {
+          <p class="text-muted-foreground text-sm">No deliveries in this period.</p>
+        } @else {
+          <div class="space-y-3">
+            @for (m of s.materialMix; track m.type; let i = $index) {
+              <div>
+                <div class="mb-1 flex items-center justify-between text-sm">
+                  <span class="font-medium">{{ m.type }}</span>
+                  <span class="text-muted-foreground">{{ m.pct }}%</span>
+                </div>
+                <div class="bg-muted h-1.5 w-full overflow-hidden rounded-full">
+                  <div class="h-full rounded-full" [class]="materialColor(i)" [style.width.%]="m.pct"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+        <div class="mt-4 flex items-center justify-between border-t pt-3 text-sm">
+          <span class="text-muted-foreground">Top hauler</span>
+          <span class="font-semibold">{{ s.topHauler ?? '—' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent deliveries + inspection activity -->
+    <div class="grid gap-4 lg:grid-cols-3">
+      <!-- Recent deliveries -->
+      <div class="overflow-hidden rounded-xl border bg-card lg:col-span-2">
+        <div class="flex items-center justify-between border-b bg-indigo-50/50 px-5 py-3 dark:bg-indigo-950/10">
+          <h3 class="font-semibold">Recent deliveries</h3>
+          <a routerLink="/main/deliveries" class="text-primary text-sm hover:underline">See all</a>
+        </div>
+        @if (s.recentDeliveries.length === 0) {
+          <p class="text-muted-foreground p-5 text-sm">No deliveries in this period.</p>
+        } @else {
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="text-muted-foreground border-b">
+                <tr>
+                  <th class="px-5 py-2.5 text-left font-normal">Receipt</th>
+                  <th class="px-5 py-2.5 text-left font-normal">Hauler &amp; truck</th>
+                  <th class="px-5 py-2.5 text-left font-normal">Material</th>
+                  <th class="px-5 py-2.5 text-left font-normal">Quantity</th>
+                  <th class="px-5 py-2.5 text-left font-normal">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (d of s.recentDeliveries; track d.id) {
+                  <tr class="border-b last:border-0">
+                    <td class="px-5 py-3 font-medium">{{ d.receipt_number }}</td>
+                    <td class="px-5 py-3">
+                      <div>{{ d.hauler }}</div>
+                      <div class="text-muted-foreground text-xs">{{ d.truck }}</div>
+                    </td>
+                    <td class="px-5 py-3">{{ d.material }}</td>
+                    <td class="px-5 py-3">{{ d.quantity | number }} m³</td>
+                    <td class="px-5 py-3">
+                      <span [class]="statusBadge(d.status)">{{ d.status }}</span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- Inspection activity -->
+      <div class="overflow-hidden rounded-xl border bg-card">
+        <div class="border-b bg-emerald-50/50 px-5 py-3 dark:bg-emerald-950/10">
+          <h3 class="font-semibold">Inspection activity</h3>
+        </div>
+        @if (s.inspectionActivity.length === 0) {
+          <p class="text-muted-foreground p-5 text-sm">No inspection activity yet.</p>
+        } @else {
+          <ul class="divide-y">
+            @for (a of s.inspectionActivity; track a.id) {
+              <li class="flex items-center justify-between gap-3 px-5 py-3">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-medium">{{ a.inspector }}</p>
+                  <p class="text-muted-foreground text-xs">
+                    {{ a.actual_volume | number }} / {{ a.allowed_volume | number }} m³
+                  </p>
+                </div>
+                <span [class]="statusBadge(a.outcome)">{{ a.outcome }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  } @else if (!store.error()) {
+    <!-- Initial loading skeleton -->
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      @for (n of [1, 2, 3, 4]; track n) {
+        <div class="bg-muted/40 h-28 animate-pulse rounded-xl border"></div>
+      }
+    </div>
+    <div class="grid gap-4 lg:grid-cols-3">
+      <div class="bg-muted/40 h-72 animate-pulse rounded-xl border lg:col-span-2"></div>
+      <div class="bg-muted/40 h-72 animate-pulse rounded-xl border"></div>
+    </div>
+  }
+</div>
