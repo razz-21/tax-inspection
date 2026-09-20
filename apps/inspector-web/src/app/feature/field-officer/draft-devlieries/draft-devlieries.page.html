@@ -1,0 +1,100 @@
+<header
+  class="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-4"
+>
+  <h1 class="text-lg font-semibold">Draft Deliveries</h1>
+  @if (!online()) {
+    <span
+      class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
+    >
+      <ng-icon name="lucideCloudOff" size="0.85rem" />
+      Offline
+    </span>
+  }
+</header>
+
+<div class="p-4 pb-40">
+  <!-- Create a new draft -->
+  <a
+    hlmBtn
+    variant="outline"
+    class="w-full gap-2"
+    routerLink="/field-officer/deliveries/create"
+    [queryParams]="{ draft: 1 }"
+  >
+    <ng-icon name="lucidePlus" size="1.1rem" />
+    Create draft delivery
+  </a>
+
+  <p class="mt-3 text-xs text-muted-foreground">
+    Drafts are saved on this device. Submit them once you're back online.
+  </p>
+
+  <!-- Draft list -->
+  <ul class="mt-4 divide-y rounded-lg border">
+    @for (draft of drafts(); track draft.id) {
+      <li class="flex items-center gap-3 px-3 py-3">
+        <span
+          class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
+        >
+          <ng-icon name="lucidePackage" size="1.2rem" />
+        </span>
+
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center justify-between gap-2">
+            <p class="truncate font-medium">{{ draft.payload.haulers.name }}</p>
+            <span
+              class="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
+            >
+              {{ draft.payload.materials.material_type }}
+            </span>
+          </div>
+          <p class="mt-0.5 truncate text-sm text-muted-foreground">
+            {{ draft.payload.place_of_deliveries }}
+          </p>
+          <p class="mt-0.5 truncate text-xs text-muted-foreground">
+            {{ draft.payload.date }} · {{ draft.payload.time }} · Qty
+            {{ draft.payload.quantity }}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="shrink-0 rounded-md p-2 text-muted-foreground transition hover:bg-accent hover:text-destructive"
+          aria-label="Remove draft"
+          (click)="remove(draft.id)"
+        >
+          <ng-icon name="lucideTrash2" size="1.1rem" />
+        </button>
+      </li>
+    } @empty {
+      <li class="px-4 py-12 text-center text-sm text-muted-foreground">
+        No drafts yet. Create one above — it'll be saved on this device.
+      </li>
+    }
+  </ul>
+</div>
+
+<!-- Submit action: pinned above the bottom nav, enabled only when online -->
+<div class="pointer-events-none fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md">
+  <div class="pointer-events-auto absolute inset-x-4 bottom-20">
+    <button
+      hlmBtn
+      type="button"
+      class="w-full gap-2"
+      [disabled]="!online() || count() === 0 || submitting()"
+      [loading]="submitting()"
+      (click)="submitAll()"
+    >
+      <ng-icon name="lucideUpload" size="1.1rem" />
+      Submit Draft Deliveries
+      @if (count() > 0) {
+        <span>({{ count() }})</span>
+      }
+    </button>
+    @if (!online() && count() > 0) {
+      <p class="mt-2 text-center text-xs text-muted-foreground">
+        You're offline — connect to submit.
+      </p>
+    }
+  </div>
+</div>

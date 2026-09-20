@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideChevronRight,
+  lucideCloudOff,
   lucideMapPin,
   lucidePackage,
   lucidePlus,
@@ -10,6 +11,7 @@ import {
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { Dispatcher } from '@ngrx/signals/events';
+import { NetworkService } from '../../../service/network.service';
 import { FieldOfficerDeliveriesStore } from '../../../store/field-officer-deliveries/field-officer-deliveries.store';
 import { fieldOfficerDeliveriesPageEvents } from '../../../store/field-officer-deliveries/field-officer-deliveries.events';
 
@@ -28,14 +30,23 @@ import { fieldOfficerDeliveriesPageEvents } from '../../../store/field-officer-d
       lucideMapPin,
       lucidePlus,
       lucideChevronRight,
+      lucideCloudOff,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header
-      class="sticky top-0 z-10 flex h-14 items-center border-b bg-background px-4"
+      class="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-4"
     >
       <h1 class="text-lg font-semibold">Deliveries</h1>
+      @if (!online()) {
+        <span
+          class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
+        >
+          <ng-icon name="lucideCloudOff" size="0.85rem" />
+          Offline
+        </span>
+      }
     </header>
 
     @if (loading()) {
@@ -50,6 +61,25 @@ import { fieldOfficerDeliveriesPageEvents } from '../../../store/field-officer-d
           </li>
         }
       </ul>
+    } @else if (error() && !online()) {
+      <div class="flex flex-col items-center gap-3 px-6 py-12 text-center">
+        <span
+          class="flex size-12 items-center justify-center rounded-full bg-amber-100 text-amber-700"
+        >
+          <ng-icon name="lucideCloudOff" size="1.5rem" />
+        </span>
+        <p class="font-medium">Can't load deliveries — you're offline</p>
+        <p class="text-sm text-muted-foreground">
+          We couldn't fetch your deliveries without a connection. You can still
+          create deliveries now and sync them once you're back online.
+        </p>
+        <div class="mt-1 flex flex-col items-stretch gap-2">
+          <a hlmBtn routerLink="/field-officer/deliveries/create">
+            Create delivery
+          </a>
+          <button hlmBtn variant="outline" (click)="load()">Try again</button>
+        </div>
+      </div>
     } @else if (error()) {
       <div class="flex flex-col items-center gap-3 px-4 py-12 text-center">
         <p class="text-sm text-muted-foreground">{{ error() }}</p>
@@ -127,6 +157,7 @@ export class DeliveriesPage {
   protected readonly deliveries = this.store.sorted;
   protected readonly loading = this.store.loading;
   protected readonly error = this.store.error;
+  protected readonly online = inject(NetworkService).online;
 
   constructor() {
     // Loads on first visit; serves the cache on subsequent visits.

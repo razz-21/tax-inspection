@@ -58,6 +58,13 @@ export const appRoutes: Route[] = [
           ).then((m) => m.CreateDeliveryPage),
       },
       {
+        path: 'deliveries/drafts',
+        loadComponent: () =>
+          import(
+            './feature/field-officer/draft-devlieries/draft-devlieries.page'
+          ).then((m) => m.DraftDeliveriesPage),
+      },
+      {
         path: 'deliveries/:id',
         loadComponent: () =>
           import(

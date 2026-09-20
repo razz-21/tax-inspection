@@ -1,15 +1,16 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import type { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { apply, form, submit } from '@angular/forms/signals';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowLeft, lucideInfo } from '@ng-icons/lucide';
+import { lucideArrowLeft, lucideCloudOff, lucideInfo } from '@ng-icons/lucide';
 import { toast } from '@spartan-ng/brain/sonner';
 import { BrnAlertDialogContent } from '@spartan-ng/brain/alert-dialog';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
@@ -23,6 +24,8 @@ import type {
 } from '@tax-inspection/shared';
 import { Dispatcher } from '@ngrx/signals/events';
 import { DeliveriesService } from '../../../service/deliveries.service';
+import { DraftDeliveriesService } from '../../../service/draft-deliveries.service';
+import { NetworkService } from '../../../service/network.service';
 import { fieldOfficerDeliveriesPageEvents } from '../../../store/field-officer-deliveries/field-officer-deliveries.events';
 import {
   emptyHauler,
@@ -88,17 +91,29 @@ function formatDate(date: Date | null): string {
     MaterialsForm,
     DeliveryDetailsForm,
   ],
-  providers: [provideIcons({ lucideArrowLeft, lucideInfo })],
+  providers: [provideIcons({ lucideArrowLeft, lucideInfo, lucideCloudOff })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './create-delivery.page.html',
 })
 export class CreateDeliveryPage {
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly deliveries = inject(DeliveriesService);
+  private readonly draftService = inject(DraftDeliveriesService);
+  private readonly network = inject(NetworkService);
   private readonly dispatcher = inject(Dispatcher);
+
+  /** Entered via the Drafts screen — always save locally, never hit the API. */
+  private readonly draftMode =
+    this.route.snapshot.queryParamMap.get('draft') === '1';
 
   protected readonly submitting = signal(false);
   protected readonly confirmOpen = signal(false);
+
+  /** Save as a draft when explicitly drafting or when there's no connection. */
+  protected readonly saveAsDraft = computed(
+    () => this.draftMode || !this.network.online(),
+  );
 
   protected readonly model = signal<CreateDeliveryModel>(emptyModel());
 
@@ -120,11 +135,23 @@ export class CreateDeliveryPage {
 
   protected async confirmCreate(): Promise<void> {
     this.confirmOpen.set(false);
+    const payload = this.toPayload();
+
+    // Offline (or drafting on purpose): store locally instead of calling the API.
+    if (this.saveAsDraft()) {
+      this.draftService.add(payload);
+      toast.success(
+        this.network.online()
+          ? 'Saved as a draft.'
+          : "You're offline — saved as a draft on this device.",
+      );
+      await this.router.navigateByUrl('/field-officer/deliveries/drafts');
+      return;
+    }
+
     this.submitting.set(true);
     try {
-      const created = await firstValueFrom(
-        this.deliveries.create(this.toPayload()),
-      );
+      const created = await firstValueFrom(this.deliveries.create(payload));
       // Keep the cached list fresh so the new delivery shows without a refetch.
       this.dispatcher.dispatch(
         fieldOfficerDeliveriesPageEvents.created(created),

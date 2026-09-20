@@ -8,13 +8,27 @@
   >
     <ng-icon name="lucideArrowLeft" size="1.25rem" />
   </a>
-  <h1 class="text-lg font-semibold">Create Delivery</h1>
+  <h1 class="text-lg font-semibold">
+    {{ saveAsDraft() ? 'Create Draft Delivery' : 'Create Delivery' }}
+  </h1>
 </header>
 
 <form
   (submit)="$event.preventDefault(); onSubmit()"
   class="space-y-6 p-4"
 >
+  @if (saveAsDraft()) {
+    <div
+      class="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800"
+    >
+      <ng-icon name="lucideCloudOff" size="1.1rem" class="mt-0.5 shrink-0" />
+      <span>
+        This will be saved as a draft on this device. Submit it from
+        <strong>Drafts</strong> once you're online.
+      </span>
+    </div>
+  }
+
   <div hlmAlert>
     <ng-icon name="lucideInfo" />
     <h4 hlmAlertTitle>Double-check before submitting</h4>
@@ -40,7 +54,7 @@
       Cancel
     </a>
     <button hlmBtn type="submit" class="flex-1" [loading]="submitting()">
-      Create delivery
+      {{ saveAsDraft() ? 'Save as draft' : 'Create delivery' }}
     </button>
   </div>
 </form>
@@ -52,10 +66,17 @@
 >
   <hlm-alert-dialog-content *brnAlertDialogContent>
     <div hlmAlertDialogHeader>
-      <h3 hlmAlertDialogTitle>Create delivery?</h3>
+      <h3 hlmAlertDialogTitle>
+        {{ saveAsDraft() ? 'Save as draft?' : 'Create delivery?' }}
+      </h3>
       <p hlmAlertDialogDescription>
-        Please confirm the details are correct. This will create a new delivery
-        record.
+        @if (saveAsDraft()) {
+          The details will be saved as a draft on this device. You can submit it
+          from Drafts once you're online.
+        } @else {
+          Please confirm the details are correct. This will create a new
+          delivery record.
+        }
       </p>
     </div>
     <div hlmAlertDialogFooter>
@@ -63,7 +84,7 @@
         Cancel
       </button>
       <button hlmBtn type="button" [loading]="submitting()" (click)="confirmCreate()">
-        Create delivery
+        {{ saveAsDraft() ? 'Save as draft' : 'Create delivery' }}
       </button>
     </div>
   </hlm-alert-dialog-content>
