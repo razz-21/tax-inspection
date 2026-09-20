@@ -1,0 +1,124 @@
+<hlm-alert-dialog [state]="open() ? 'open' : 'closed'" (closed)="closed.emit()">
+  <hlm-alert-dialog-content *brnAlertDialogContent class="w-full sm:max-w-2xl">
+    <div hlmAlertDialogHeader>
+      <h3 hlmAlertDialogTitle>Add inspection</h3>
+      <p hlmAlertDialogDescription>
+        Record an inspection for this delivery.
+      </p>
+    </div>
+
+    <form class="space-y-4 py-2" (submit)="$event.preventDefault(); onSubmit()">
+      @let dateField = inspectionForm.inspectionDate();
+      @let actualField = inspectionForm.actualVolume();
+      @let allowedField = inspectionForm.allowedVolume();
+
+      <!-- Inspection date -->
+      <div class="space-y-2">
+        <label
+          hlmLabel
+          for="inspection-date"
+          [class.text-destructive]="dateField.touched() && dateField.invalid()"
+        >
+          Inspection date
+        </label>
+        <hlm-date-picker
+          autoCloseOnSelect
+          [date]="dateField.value() ?? undefined"
+          (dateChange)="selectInspectionDate($event)"
+        >
+          <hlm-date-picker-trigger buttonId="inspection-date" class="w-full">
+            Pick a date
+          </hlm-date-picker-trigger>
+        </hlm-date-picker>
+        @if (dateField.touched() && dateField.invalid()) {
+          <p class="text-sm text-destructive">
+            {{ dateField.errors()[0]?.message }}
+          </p>
+        }
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <!-- Actual volume -->
+        <div class="space-y-2">
+          <label
+            hlmLabel
+            for="inspection-actual"
+            [class.text-destructive]="actualField.touched() && actualField.invalid()"
+          >
+            Actual volume (m³)
+          </label>
+          <input
+            hlmInput
+            id="inspection-actual"
+            type="number"
+            step="any"
+            inputmode="decimal"
+            class="w-full"
+            placeholder="0"
+            [formField]="inspectionForm.actualVolume"
+            [forceInvalid]="actualField.touched() && actualField.invalid()"
+          />
+          @if (actualField.touched() && actualField.invalid()) {
+            <p class="text-sm text-destructive">
+              {{ actualField.errors()[0]?.message }}
+            </p>
+          }
+        </div>
+
+        <!-- Allowed volume -->
+        <div class="space-y-2">
+          <label
+            hlmLabel
+            for="inspection-allowed"
+            [class.text-destructive]="allowedField.touched() && allowedField.invalid()"
+          >
+            Allowed volume (m³)
+          </label>
+          <input
+            hlmInput
+            id="inspection-allowed"
+            type="number"
+            step="any"
+            inputmode="decimal"
+            class="w-full"
+            placeholder="0"
+            [formField]="inspectionForm.allowedVolume"
+            [forceInvalid]="allowedField.touched() && allowedField.invalid()"
+          />
+          @if (allowedField.touched() && allowedField.invalid()) {
+            <p class="text-sm text-destructive">
+              {{ allowedField.errors()[0]?.message }}
+            </p>
+          }
+        </div>
+      </div>
+
+      <!-- Remarks -->
+      <div class="space-y-2">
+        <label hlmLabel for="inspection-remarks">Remarks (optional)</label>
+        <input
+          hlmInput
+          id="inspection-remarks"
+          class="w-full"
+          placeholder="Add any notes"
+          [formField]="inspectionForm.remarks"
+        />
+      </div>
+    </form>
+
+    <div hlmAlertDialogFooter>
+      <button
+        hlmBtn
+        variant="secondary"
+        type="button"
+        [disabled]="saving()"
+        (click)="closed.emit()"
+      >
+        Cancel
+      </button>
+      <button hlmBtn type="button" [loading]="saving()" (click)="onSubmit()">
+        Save inspection
+      </button>
+    </div>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

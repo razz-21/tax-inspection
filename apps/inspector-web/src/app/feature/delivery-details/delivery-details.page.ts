@@ -9,7 +9,7 @@ import {
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Dispatcher } from '@ngrx/signals/events';
+import { Dispatcher, Events } from '@ngrx/signals/events';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowLeft,
@@ -32,9 +32,11 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import {
   type Delivery,
+  type DeliveryInspection,
   type DeliveryStatus,
   type Payment,
   type PaymentStatus,
+  type PostDeliveryInspection,
   type PostPayment,
   type TaxAssessment,
 } from '@tax-inspection/shared';
@@ -47,13 +49,20 @@ import {
 import { PaymentsService } from '../../service/payments.service';
 import { TaxAssessmentsService } from '../../service/tax-assessments.service';
 import { DeliveryInspectionsStore } from '../../store/delivery-inspections/delivery-inspections.store';
-import { deliveryInspectionsPageEvents } from '../../store/delivery-inspections/delivery-inspections.events';
+import {
+  deliveryInspectionsApiEvents,
+  deliveryInspectionsPageEvents,
+} from '../../store/delivery-inspections/delivery-inspections.events';
 import { deliveriesApiEvents } from '../../store/deliveries/deliveries.events';
 import { ConfirmDialog } from './confirm-dialog/confirm-dialog';
 import {
   PaymentDialog,
   type PaymentDialogResult,
 } from './payment-dialog/payment-dialog';
+import {
+  InspectionDialog,
+  type InspectionDialogResult,
+} from './inspection-dialog/inspection-dialog';
 
 /** Back-office read-only view of a single delivery. */
 @Component({
@@ -67,6 +76,7 @@ import {
     HlmSkeletonImports,
     ConfirmDialog,
     PaymentDialog,
+    InspectionDialog,
   ],
   providers: [
     provideIcons({
@@ -95,10 +105,20 @@ export class DeliveryDetailsPage {
   private readonly taxService = inject(TaxAssessmentsService);
   private readonly paymentsService = inject(PaymentsService);
   private readonly dispatcher = inject(Dispatcher);
+  private readonly events = inject(Events);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Inspections come from the shared SignalStore (events + entities). */
   protected readonly inspectionsStore = inject(DeliveryInspectionsStore);
+
+  // --- Inspections (add / delete) ---
+  protected readonly inspectionOpen = signal(false);
+  protected readonly savingInspection = signal(false);
+  /** Inspection queued for deletion — drives its confirmation dialog. */
+  protected readonly pendingDeleteInspection = signal<DeliveryInspection | null>(
+    null,
+  );
+  protected readonly deletingInspection = signal(false);
 
   protected readonly delivery = signal<Delivery | null>(null);
   protected readonly loading = signal(true);
@@ -148,10 +168,70 @@ export class DeliveryDetailsPage {
 
   constructor() {
     this.load();
+
+    // Inspection create/delete are driven by the shared store's effects; react
+    // to their API events for toasts and to close the dialog.
+    this.events
+      .on(deliveryInspectionsApiEvents.createdSuccess)
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.savingInspection.set(false);
+        this.inspectionOpen.set(false);
+        toast.success('Inspection added.');
+      });
+
+    this.events
+      .on(deliveryInspectionsApiEvents.createdFailure)
+      .pipe(takeUntilDestroyed())
+      .subscribe((event) => {
+        this.savingInspection.set(false);
+        toast.error(event.payload || 'Failed to add inspection.');
+      });
+
+    this.events
+      .on(deliveryInspectionsApiEvents.removedSuccess)
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.deletingInspection.set(false);
+        this.pendingDeleteInspection.set(null);
+        toast.success('Inspection deleted.');
+      });
+
+    this.events
+      .on(deliveryInspectionsApiEvents.removedFailure)
+      .pipe(takeUntilDestroyed())
+      .subscribe((event) => {
+        this.deletingInspection.set(false);
+        toast.error(event.payload || 'Failed to delete inspection.');
+      });
   }
 
   protected toggleStatusMenu(): void {
     this.statusMenuOpen.update((open) => !open);
+  }
+
+  // --- Inspections ---
+  protected openInspection(): void {
+    this.inspectionOpen.set(true);
+  }
+
+  protected onInspectionSave(result: InspectionDialogResult): void {
+    const deliveryId = this.delivery()?.id;
+    if (!deliveryId) return;
+
+    const payload: PostDeliveryInspection = {
+      delivery_id: deliveryId,
+      ...result,
+    };
+    this.savingInspection.set(true);
+    this.dispatcher.dispatch(deliveryInspectionsPageEvents.created(payload));
+  }
+
+  protected deleteInspection(): void {
+    const target = this.pendingDeleteInspection();
+    if (!target) return;
+    this.deletingInspection.set(true);
+    this.dispatcher.dispatch(deliveryInspectionsPageEvents.removed(target.id));
   }
 
   /** Delete this delivery, then return to the list. */
