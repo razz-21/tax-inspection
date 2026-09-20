@@ -32,6 +32,10 @@ import { MeStore } from '../../store/me/me.store';
   providers: [
     provideIcons({ lucideChevronDown, lucideLogOut, lucideSettings }),
   ],
+  host: {
+    // Pin the header to the top of the scroll container as the content scrolls.
+    class: 'sticky top-0 z-30 block',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="flex h-16 items-center gap-2 border-b px-4 bg-background">
