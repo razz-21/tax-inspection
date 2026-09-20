@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideChartColumn,
+  lucideChartLine,
   lucideClipboardCheck,
   lucideCreditCard,
   lucideGalleryVerticalEnd,
@@ -40,6 +41,7 @@ interface NavItem {
       lucideCreditCard,
       lucideLayers,
       lucideChartColumn,
+      lucideChartLine,
       lucideUsers,
       lucideSettings,
     }),
@@ -55,6 +57,7 @@ export class MainLayout {
     { label: 'Payments', icon: 'lucideCreditCard', link: '/main/payments' },
     { label: 'Source of Materials', icon: 'lucideLayers', link: '/main/source-of-materials' },
     { label: 'Reports', icon: 'lucideChartColumn', link: '/main/reports' },
+    { label: 'Analytics', icon: 'lucideChartLine', link: '/main/analytics' },
     { label: 'User Management', icon: 'lucideUsers', link: '/main/user-management' },
     { label: 'Profile & Settings', icon: 'lucideSettings', link: '/main/profile-settings' },
   ];

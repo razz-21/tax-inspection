@@ -1,0 +1,277 @@
+<div class="space-y-5">
+  <!-- Header -->
+  <header
+    class="from-primary/5 rounded-xl border bg-gradient-to-r to-transparent p-5"
+  >
+    <h2 class="text-2xl font-bold tracking-tight">Analytics</h2>
+    <p class="text-muted-foreground text-sm">
+      Collection performance, logistical bottlenecks, and revenue trends.
+    </p>
+  </header>
+
+  <!-- Range filter + reload -->
+  <div class="flex items-center justify-between gap-3">
+    <div class="flex flex-wrap gap-2">
+      @for (r of ranges; track r.value) {
+        <button
+          class="rounded-lg border px-3 py-1.5 text-sm font-medium transition"
+          [class]="
+            store.range() === r.value
+              ? 'border-primary bg-primary text-primary-foreground'
+              : 'border-input text-foreground hover:bg-accent'
+          "
+          (click)="setRange(r.value)"
+        >
+          {{ r.label }}
+        </button>
+      }
+    </div>
+    <button
+      hlmBtn
+      variant="outline"
+      size="icon"
+      aria-label="Reload"
+      hlmTooltip="Reload data"
+      position="left"
+      [loading]="store.loading()"
+      (click)="reload()"
+    >
+      @if (!store.loading()) {
+        <ng-icon name="lucideRefreshCw" size="1rem" />
+      }
+    </button>
+  </div>
+
+  @let s = store.summary();
+
+  @if (store.error()) {
+    <div
+      class="border-destructive/30 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
+    >
+      {{ store.error() }}
+    </div>
+  }
+
+  @if (s) {
+    <!-- KPI cards -->
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <!-- Collection rate -->
+      <div class="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Collection rate</p>
+          <span class="flex size-7 items-center justify-center rounded-md bg-emerald-600 text-white">
+            <ng-icon name="lucidePercent" size="1rem" />
+          </span>
+        </div>
+        <p class="mt-1 text-3xl font-bold">{{ s.collectionRate.collectionRatePct }}%</p>
+        <p class="mt-1 text-xs text-emerald-700/80 dark:text-emerald-300/80">
+          of billed penalties collected
+        </p>
+      </div>
+
+      <!-- Outstanding A/R -->
+      <div class="rounded-xl border border-rose-100 bg-rose-50/60 p-4 dark:border-rose-900/40 dark:bg-rose-950/20">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-medium text-rose-700 dark:text-rose-300">Outstanding A/R</p>
+          <span class="flex size-7 items-center justify-center rounded-md bg-rose-600 text-white">
+            <ng-icon name="lucideBanknote" size="1rem" />
+          </span>
+        </div>
+        <p class="mt-1 text-3xl font-bold">₱{{ s.collectionRate.outstandingAmount | number:'1.0-0' }}</p>
+        <p class="mt-1 text-xs text-rose-700/80 dark:text-rose-300/80">
+          pending + on hold
+        </p>
+      </div>
+
+      <!-- Avg collection lag (CEI) -->
+      <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4 dark:border-indigo-900/40 dark:bg-indigo-950/20">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-medium text-indigo-700 dark:text-indigo-300">Avg collection lag</p>
+          <span class="flex size-7 items-center justify-center rounded-md bg-indigo-600 text-white">
+            <ng-icon name="lucideClock" size="1rem" />
+          </span>
+        </div>
+        <p class="mt-1 text-3xl font-bold">
+          @if (s.collectionEfficiency.avgLagDays !== null) {
+            {{ s.collectionEfficiency.avgLagDays }}<span class="text-lg font-semibold"> days</span>
+          } @else {
+            —
+          }
+        </p>
+        <p class="mt-1 text-xs text-indigo-700/80 dark:text-indigo-300/80">
+          assessed → paid (CEI)
+        </p>
+      </div>
+
+      <!-- Peak window -->
+      <div class="rounded-xl border border-amber-100 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-medium text-amber-700 dark:text-amber-300">Peak delivery window</p>
+          <span class="flex size-7 items-center justify-center rounded-md bg-amber-500 text-white">
+            <ng-icon name="lucideMapPin" size="1rem" />
+          </span>
+        </div>
+        <p class="mt-1 text-2xl font-bold">{{ s.bottlenecks.peakWindowLabel ?? '—' }}</p>
+        <p class="mt-1 text-xs text-amber-700/80 dark:text-amber-300/80">
+          busiest hour of the day
+        </p>
+      </div>
+    </div>
+
+    <!-- Collection Rate Status + CEI -->
+    <div class="grid gap-4 lg:grid-cols-2">
+      <!-- Collection Rate Status -->
+      <div class="rounded-xl border bg-card p-5">
+        <div class="mb-4">
+          <h3 class="font-semibold">Collection Rate Status</h3>
+          <p class="text-muted-foreground text-xs">Payment status mix · {{ rangeSubtitle() }}</p>
+        </div>
+
+        @if (s.collectionRate.totalAmount === 0) {
+          <p class="text-muted-foreground text-sm">No payments recorded in this period.</p>
+        } @else {
+          <tanstack-chart hlmChart class="block w-full" [options]="collectionRateChart()" />
+
+          <div class="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+            <div>
+              <p class="font-semibold text-emerald-600">{{ s.collectionRate.paidCount }}</p>
+              <p class="text-muted-foreground">Paid</p>
+            </div>
+            <div>
+              <p class="font-semibold text-amber-600">{{ s.collectionRate.pendingCount }}</p>
+              <p class="text-muted-foreground">Pending</p>
+            </div>
+            <div>
+              <p class="font-semibold text-slate-500">{{ s.collectionRate.holdCount }}</p>
+              <p class="text-muted-foreground">Hold</p>
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between border-t pt-3 text-sm">
+            <span class="text-muted-foreground">Total billed</span>
+            <span class="font-semibold">₱{{ s.collectionRate.totalAmount | number:'1.0-0' }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Collection Efficiency Index -->
+      <div class="rounded-xl border bg-card p-5">
+        <div class="mb-4">
+          <h3 class="font-semibold">Collection Efficiency Index</h3>
+          <p class="text-muted-foreground text-xs">Days from assessment to payment</p>
+        </div>
+
+        @if (s.collectionEfficiency.settledCount === 0) {
+          <p class="text-muted-foreground text-sm">No settled penalties in this period.</p>
+        } @else {
+          <div class="mb-4 grid grid-cols-3 gap-3 text-center">
+            <div class="rounded-lg border p-2">
+              <p class="text-xl font-bold">{{ s.collectionEfficiency.medianLagDays }}</p>
+              <p class="text-muted-foreground text-xs">Median days</p>
+            </div>
+            <div class="rounded-lg border p-2">
+              <p class="text-xl font-bold text-emerald-600">{{ s.collectionEfficiency.fastestDays }}</p>
+              <p class="text-muted-foreground text-xs">Fastest</p>
+            </div>
+            <div class="rounded-lg border p-2">
+              <p class="text-xl font-bold text-rose-600">{{ s.collectionEfficiency.slowestDays }}</p>
+              <p class="text-muted-foreground text-xs">Slowest</p>
+            </div>
+          </div>
+
+          <tanstack-chart hlmChart class="block w-full" [options]="ceiChart()" />
+
+          <p class="text-muted-foreground mt-3 text-xs">
+            Based on {{ s.collectionEfficiency.settledCount | number }} settled penalt{{ s.collectionEfficiency.settledCount === 1 ? 'y' : 'ies' }}.
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Logistical Bottleneck Detection -->
+    <div class="grid gap-4 lg:grid-cols-3">
+      <!-- Deliveries by hour + weekday -->
+      <div class="rounded-xl border bg-card p-5 lg:col-span-2">
+        <div class="mb-4">
+          <h3 class="font-semibold">Logistical Bottlenecks</h3>
+          <p class="text-muted-foreground text-xs">Deliveries by hour of day · {{ rangeSubtitle() }}</p>
+        </div>
+
+        @if (s.bottlenecks.totalDeliveries === 0) {
+          <div class="flex h-56 items-center justify-center text-sm text-muted-foreground">
+            No deliveries in this period.
+          </div>
+        } @else {
+          <tanstack-chart hlmChart class="block w-full" [options]="hourlyChart()" />
+          @if (s.bottlenecks.untimedCount > 0) {
+            <p class="text-muted-foreground mt-2 text-xs">
+              {{ s.bottlenecks.untimedCount | number }} deliver{{ s.bottlenecks.untimedCount === 1 ? 'y' : 'ies' }} without a readable time are excluded from the hourly view.
+            </p>
+          }
+
+          <div class="mt-5 border-t pt-4">
+            <p class="mb-2 text-sm font-medium">By weekday</p>
+            <tanstack-chart hlmChart class="block w-full" [options]="weekdayChart()" />
+          </div>
+        }
+      </div>
+
+      <!-- Top destinations -->
+      <div class="rounded-xl border bg-card p-5">
+        <h3 class="mb-1 font-semibold">High-traffic drop-off zones</h3>
+        <p class="text-muted-foreground mb-4 text-xs">Top places of delivery</p>
+        @if (s.bottlenecks.topDestinations.length === 0) {
+          <p class="text-muted-foreground text-sm">No destinations recorded in this period.</p>
+        } @else {
+          <tanstack-chart hlmChart class="block w-full" [options]="destinationsChart()" />
+        }
+      </div>
+    </div>
+
+    <!-- Tax Revenue Trend Forecasting -->
+    <div class="rounded-xl border bg-card p-5">
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 class="font-semibold">Tax Revenue Trend &amp; Forecast</h3>
+          <p class="text-muted-foreground text-xs">
+            Collected revenue over the last 12 months, with a 3-month projection.
+          </p>
+        </div>
+        <div class="flex items-center gap-4 text-xs">
+          <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full" style="background:#8b5cf6"></span>Actual</span>
+          <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full" style="background:#c4b5fd"></span>Forecast</span>
+        </div>
+      </div>
+
+      @if (!s.revenueTrend.sufficientData) {
+        <div class="mb-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
+          <ng-icon name="lucideTriangleAlert" size="0.9rem" class="mt-0.5 shrink-0" />
+          <span>
+            Only {{ s.revenueTrend.monthsWithData }} month{{ s.revenueTrend.monthsWithData === 1 ? '' : 's' }} of revenue history so far. Seasonal forecasting becomes reliable with 6+ months of data — treat this projection as indicative only.
+          </span>
+        </div>
+      }
+
+      <tanstack-chart hlmChart class="block w-full" [options]="revenueChart()" />
+
+      @if (s.revenueTrend.projectedNextMonth !== null) {
+        <div class="mt-4 flex items-center justify-between border-t pt-3 text-sm">
+          <span class="text-muted-foreground">Projected next month</span>
+          <span class="font-semibold">₱{{ s.revenueTrend.projectedNextMonth | number:'1.0-0' }}</span>
+        </div>
+      }
+    </div>
+  } @else if (!store.error()) {
+    <!-- Initial loading skeleton -->
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      @for (n of [1, 2, 3, 4]; track n) {
+        <div class="bg-muted/40 h-28 animate-pulse rounded-xl border"></div>
+      }
+    </div>
+    <div class="grid gap-4 lg:grid-cols-2">
+      <div class="bg-muted/40 h-64 animate-pulse rounded-xl border"></div>
+      <div class="bg-muted/40 h-64 animate-pulse rounded-xl border"></div>
+    </div>
+    <div class="bg-muted/40 h-72 animate-pulse rounded-xl border"></div>
+  }
+</div>

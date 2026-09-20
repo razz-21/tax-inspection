@@ -33,6 +33,9 @@ export * from './source-of-materials/source-of-material.actions';
 // Dashboard (aggregated read model)
 export * from './dashboard/dashboard.model';
 
+// Analytics (aggregated read model)
+export * from './analytics/analytics.model';
+
 // App settings (singleton)
 export * from './settings/settings.model';
 

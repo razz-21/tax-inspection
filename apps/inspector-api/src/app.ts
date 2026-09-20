@@ -13,6 +13,7 @@ import { taxAssessmentsRoutes } from './api/tax-assessments/tax-assessments.rout
 import { paymentsRoutes } from './api/payments/payments.routes';
 import { sourceOfMaterialsRoutes } from './api/source-of-materials/source-of-materials.routes';
 import { dashboardRoutes } from './api/dashboard/dashboard.routes';
+import { analyticsRoutes } from './api/analytics/analytics.routes';
 import { settingsRoutes } from './api/settings/settings.routes';
 import { reportsRoutes } from './api/reports/reports.routes';
 
@@ -58,6 +59,7 @@ app.route(`${API_PREFIX}/tax-assessments`, taxAssessmentsRoutes);
 app.route(`${API_PREFIX}/payments`, paymentsRoutes);
 app.route(`${API_PREFIX}/source-of-materials`, sourceOfMaterialsRoutes);
 app.route(`${API_PREFIX}/dashboard`, dashboardRoutes);
+app.route(`${API_PREFIX}/analytics`, analyticsRoutes);
 app.route(`${API_PREFIX}/settings`, settingsRoutes);
 app.route(`${API_PREFIX}/reports`, reportsRoutes);
 
