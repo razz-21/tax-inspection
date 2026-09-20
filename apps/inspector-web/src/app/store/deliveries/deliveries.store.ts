@@ -15,6 +15,7 @@ import type {
   PaginationMeta,
 } from '@tax-inspection/shared';
 import { DeliveriesService } from '../../service/deliveries.service';
+import { compareDeliveriesByDateTimeDesc } from '../../util/delivery-order';
 import { authEvents } from '../auth/auth.events';
 import {
   deliveriesApiEvents,
@@ -34,8 +35,8 @@ const initialState: DeliveriesState = {
   loading: false,
   loaded: false,
   error: null,
-  // Newest deliveries first.
-  query: { page: 1, limit: 12, sortBy: 'created_at', sortOrder: 'desc' },
+  // Newest deliveries first, by reported delivery date.
+  query: { page: 1, limit: 12, sortBy: 'date', sortOrder: 'desc' },
   meta: null,
 };
 
@@ -45,6 +46,13 @@ export const DeliveriesStore = signalStore(
   withEntities<Delivery>(),
   withComputed(({ entities, meta }) => ({
     total: computed(() => meta()?.total ?? entities().length),
+    /**
+     * Current page ordered by reported date then time. The server already
+     * orders by date across pages; this refines the time order within the page.
+     */
+    sorted: computed(() =>
+      [...entities()].sort(compareDeliveriesByDateTimeDesc),
+    ),
   })),
   // State transitions driven purely by events.
   withReducer(

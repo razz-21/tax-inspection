@@ -24,6 +24,8 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'deliveries',
+        // Depth 0: a bottom-nav tab (peer of profile/drafts) — no slide between tabs.
+        data: { animation: 0 },
         loadComponent: () =>
           import('./feature/field-officer/deliveries/deliveries.page').then(
             (m) => m.DeliveriesPage,
@@ -31,6 +33,7 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'profile',
+        data: { animation: 0 },
         loadComponent: () =>
           import('./feature/field-officer/profile/profile.page').then(
             (m) => m.ProfilePage,
@@ -38,6 +41,7 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'profile/edit',
+        data: { animation: 1 },
         loadComponent: () =>
           import(
             './feature/field-officer/edit-profile/edit-profile.page'
@@ -45,6 +49,7 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'profile/change-password',
+        data: { animation: 1 },
         loadComponent: () =>
           import(
             './feature/field-officer/change-password/change-password.page'
@@ -52,6 +57,7 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'deliveries/create',
+        data: { animation: 1 },
         loadComponent: () =>
           import(
             './feature/field-officer/create-delivery/create-delivery.page'
@@ -59,6 +65,8 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'deliveries/drafts',
+        // Depth 0: the Drafts bottom-nav tab.
+        data: { animation: 0 },
         loadComponent: () =>
           import(
             './feature/field-officer/draft-devlieries/draft-devlieries.page'
@@ -66,6 +74,7 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'deliveries/:id',
+        data: { animation: 1 },
         loadComponent: () =>
           import(
             './feature/field-officer/delivery-detail/delivery-detail.page'
@@ -73,6 +82,7 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'deliveries/:id/add-inspection',
+        data: { animation: 2 },
         loadComponent: () =>
           import(
             './feature/field-officer/add-inspection/add-inspection.page'

@@ -98,3 +98,12 @@ body {
 font-family: var(--font-sans);
 }
 }
+
+/* Field officer mobile page transition. Each routed page fills the viewport and
+   scrolls internally so the incoming and outgoing pages can overlap while the
+   `routeAnimations` trigger slides them (see route-animations.ts). */
+.fo-route-viewport > :not(router-outlet) {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+}

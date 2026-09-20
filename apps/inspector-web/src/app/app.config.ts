@@ -12,6 +12,7 @@ import {
   withInterceptors,
 } from '@angular/common/http';
 import { provideServiceWorker } from '@angular/service-worker';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { appRoutes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { errorInterceptor } from './interceptors/error.interceptor';
@@ -23,6 +24,7 @@ import { PwaUpdateService } from './service/pwa-update.service';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideAnimationsAsync(),
     provideRouter(appRoutes),
     provideHttpClient(
       withFetch(),

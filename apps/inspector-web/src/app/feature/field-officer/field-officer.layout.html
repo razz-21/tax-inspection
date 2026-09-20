@@ -1,7 +1,11 @@
 <div class="mx-auto flex h-dvh w-full max-w-md flex-col border-x bg-background">
   <!-- Content -->
-  <main class="flex-1 overflow-y-auto">
-    <router-outlet />
+  <main
+    class="fo-route-viewport relative flex-1 overflow-hidden"
+    [@routeAnimations]="prepareRoute(outlet)"
+    [@.disabled]="reduceMotion"
+  >
+    <router-outlet #outlet="outlet" />
   </main>
 
   <!-- Bottom navigation -->
@@ -10,6 +14,7 @@
       <a
         [routerLink]="tab.link"
         routerLinkActive="text-primary"
+        [routerLinkActiveOptions]="{ exact: true }"
         #rla="routerLinkActive"
         class="flex flex-col items-center gap-1 py-2.5 text-xs font-medium text-muted-foreground transition-colors"
       >

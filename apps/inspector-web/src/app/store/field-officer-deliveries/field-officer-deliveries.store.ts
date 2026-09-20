@@ -12,6 +12,7 @@ import { Dispatcher, Events, on, withReducer } from '@ngrx/signals/events';
 import { mapResponse } from '@ngrx/operators';
 import type { Delivery, GetDeliveries } from '@tax-inspection/shared';
 import { DeliveriesService } from '../../service/deliveries.service';
+import { compareDeliveriesByDateTimeDesc } from '../../util/delivery-order';
 import { authEvents } from '../auth/auth.events';
 import {
   fieldOfficerDeliveriesApiEvents,
@@ -31,10 +32,10 @@ const initialState: FieldOfficerDeliveriesState = {
   error: null,
 };
 
-/** The field officer's own delivery list — newest first, capped at 50. */
+/** The field officer's own delivery list — newest first by date, capped at 50. */
 const LIST_QUERY: Partial<GetDeliveries> = {
   limit: 50,
-  sortBy: 'created_at',
+  sortBy: 'date',
   sortOrder: 'desc',
 };
 
@@ -50,9 +51,9 @@ export const FieldOfficerDeliveriesStore = signalStore(
   withState(initialState),
   withEntities<Delivery>(),
   withComputed(({ entities }) => ({
-    /** Newest-first, independent of entity insertion order. */
+    /** Newest-first by reported date then time, independent of insertion order. */
     sorted: computed(() =>
-      [...entities()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+      [...entities()].sort(compareDeliveriesByDateTimeDesc),
     ),
   })),
   // State transitions driven purely by events.
