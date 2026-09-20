@@ -34,7 +34,7 @@ export class ThemeService {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored === 'dark' || stored === 'light' || stored === 'auto'
       ? stored
-      : 'auto';
+      : 'light';
   }
 
   private apply(theme: Theme): void {

@@ -40,7 +40,6 @@ import { MeStore } from '../../store/me/me.store';
   template: `
     <header class="flex h-16 items-center gap-2 border-b px-4 bg-background">
       <button hlmSidebarTrigger></button>
-      <span class="text-sm font-medium">Tax Inspection</span>
 
       <!-- User menu -->
       <div class="relative ml-auto">

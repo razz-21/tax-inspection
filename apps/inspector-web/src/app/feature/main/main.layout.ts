@@ -6,7 +6,6 @@ import {
   lucideChartLine,
   lucideClipboardCheck,
   lucideCreditCard,
-  lucideGalleryVerticalEnd,
   lucideLayers,
   lucideLayoutDashboard,
   lucideSettings,
@@ -34,7 +33,6 @@ interface NavItem {
   ],
   providers: [
     provideIcons({
-      lucideGalleryVerticalEnd,
       lucideLayoutDashboard,
       lucideClipboardCheck,
       lucideTruck,

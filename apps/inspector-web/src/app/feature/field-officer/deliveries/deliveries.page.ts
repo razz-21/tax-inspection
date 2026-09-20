@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  signal,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -16,8 +9,9 @@ import {
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
-import type { Delivery } from '@tax-inspection/shared';
-import { DeliveriesService } from '../../../service/deliveries.service';
+import { Dispatcher } from '@ngrx/signals/events';
+import { FieldOfficerDeliveriesStore } from '../../../store/field-officer-deliveries/field-officer-deliveries.store';
+import { fieldOfficerDeliveriesPageEvents } from '../../../store/field-officer-deliveries/field-officer-deliveries.events';
 
 /** Field officer's delivery list (mobile). */
 @Component({
@@ -117,41 +111,29 @@ import { DeliveriesService } from '../../../service/deliveries.service';
     >
       <a
         routerLink="/field-officer/deliveries/create"
-        class="pointer-events-auto absolute bottom-20 right-4 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:opacity-90"
+        class="pointer-events-auto absolute bottom-20 right-4 flex h-14 items-center gap-2 rounded-full bg-primary px-5 font-medium text-primary-foreground shadow-lg transition hover:opacity-90"
         aria-label="Create delivery"
       >
         <ng-icon name="lucidePlus" size="1.5rem" />
+        Deliveries
       </a>
     </div>
   `,
 })
 export class DeliveriesPage {
-  private readonly service = inject(DeliveriesService);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly store = inject(FieldOfficerDeliveriesStore);
+  private readonly dispatcher = inject(Dispatcher);
 
-  protected readonly deliveries = signal<Delivery[]>([]);
-  protected readonly loading = signal(true);
-  protected readonly error = signal<string | null>(null);
+  protected readonly deliveries = this.store.sorted;
+  protected readonly loading = this.store.loading;
+  protected readonly error = this.store.error;
 
   constructor() {
-    this.load();
+    // Loads on first visit; serves the cache on subsequent visits.
+    this.dispatcher.dispatch(fieldOfficerDeliveriesPageEvents.opened());
   }
 
   protected load(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.service
-      .list({ limit: 50, sortBy: 'created_at', sortOrder: 'desc' })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.deliveries.set(res.data);
-          this.loading.set(false);
-        },
-        error: () => {
-          this.error.set('Failed to load deliveries.');
-          this.loading.set(false);
-        },
-      });
+    this.dispatcher.dispatch(fieldOfficerDeliveriesPageEvents.reloaded());
   }
 }

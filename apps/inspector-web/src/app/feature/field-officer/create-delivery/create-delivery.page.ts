@@ -21,7 +21,9 @@ import type {
   PostDelivery,
   TruckType,
 } from '@tax-inspection/shared';
+import { Dispatcher } from '@ngrx/signals/events';
 import { DeliveriesService } from '../../../service/deliveries.service';
+import { fieldOfficerDeliveriesPageEvents } from '../../../store/field-officer-deliveries/field-officer-deliveries.events';
 import {
   emptyHauler,
   haulerSchema,
@@ -93,6 +95,7 @@ function formatDate(date: Date | null): string {
 export class CreateDeliveryPage {
   private readonly router = inject(Router);
   private readonly deliveries = inject(DeliveriesService);
+  private readonly dispatcher = inject(Dispatcher);
 
   protected readonly submitting = signal(false);
   protected readonly confirmOpen = signal(false);
@@ -119,7 +122,13 @@ export class CreateDeliveryPage {
     this.confirmOpen.set(false);
     this.submitting.set(true);
     try {
-      await firstValueFrom(this.deliveries.create(this.toPayload()));
+      const created = await firstValueFrom(
+        this.deliveries.create(this.toPayload()),
+      );
+      // Keep the cached list fresh so the new delivery shows without a refetch.
+      this.dispatcher.dispatch(
+        fieldOfficerDeliveriesPageEvents.created(created),
+      );
       toast.success('Delivery created successfully.');
       await this.router.navigateByUrl('/field-officer/deliveries');
     } catch (err) {

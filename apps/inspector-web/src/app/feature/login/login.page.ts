@@ -3,8 +3,6 @@ import { Router } from '@angular/router';
 import type { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { email, form, FormField, required, submit } from '@angular/forms/signals';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideGalleryVerticalEnd } from '@ng-icons/lucide';
 import type { LoginErrorResponse } from '@tax-inspection/shared';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -19,14 +17,7 @@ interface LoginModel {
 
 @Component({
   selector: 'app-login-page',
-  imports: [
-    NgIcon,
-    FormField,
-    HlmButtonImports,
-    HlmInputImports,
-    HlmLabelImports,
-  ],
-  providers: [provideIcons({ lucideGalleryVerticalEnd })],
+  imports: [FormField, HlmButtonImports, HlmInputImports, HlmLabelImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.page.html',
 })
