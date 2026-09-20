@@ -20,6 +20,7 @@ import { Dispatcher } from '@ngrx/signals/events';
 import { API_ENDPOINTS } from '../constants/api.constants';
 import { MeStore } from '../store/me/me.store';
 import { authEvents } from '../store/auth/auth.events';
+import { PwaUpdateService } from './pwa-update.service';
 
 /** Authentication API calls. Session state lives in {@link MeStore}. */
 @Injectable({ providedIn: 'root' })
@@ -27,6 +28,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly me = inject(MeStore);
   private readonly dispatcher = inject(Dispatcher);
+  private readonly pwaUpdate = inject(PwaUpdateService);
 
   /** The signed-in user, or `null` when logged out. */
   readonly currentUser = this.me.user;
@@ -97,5 +99,7 @@ export class AuthService {
   private clearSession(): void {
     this.me.clear();
     this.dispatcher.dispatch(authEvents.loggedOut());
+    // Purge cached API responses so the next user can't read them offline.
+    void this.pwaUpdate.clearApiCache();
   }
 }

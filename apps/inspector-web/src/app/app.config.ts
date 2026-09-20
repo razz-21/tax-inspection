@@ -18,6 +18,7 @@ import { errorInterceptor } from './interceptors/error.interceptor';
 import { SourceOfMaterialsStore } from './store/source-of-materials/source-of-materials.store';
 import { ThemeService } from './service/theme.service';
 import { PwaInstallService } from './service/pwa-install.service';
+import { PwaUpdateService } from './service/pwa-update.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -39,6 +40,10 @@ export const appConfig: ApplicationConfig = {
     // Start listening for the install prompt before any lazy page can miss it.
     provideAppInitializer(() => {
       inject(PwaInstallService);
+    }),
+    // Watch for new deployments and prompt the user to reload.
+    provideAppInitializer(() => {
+      inject(PwaUpdateService).init();
     }),
     // Register the ngsw service worker for installable PWA + offline caching.
     // Disabled in dev; registers shortly after the app stabilises in production.
