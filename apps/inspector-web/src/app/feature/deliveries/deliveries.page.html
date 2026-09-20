@@ -50,6 +50,7 @@
             <th class="px-4 py-3 text-left font-normal">Truck type</th>
             <th class="px-4 py-3 text-left font-normal">Quantity</th>
             <th class="px-4 py-3 text-left font-normal">Receipt number</th>
+            <th class="px-4 py-3 text-left font-normal">Status</th>
             <th class="px-4 py-3 text-left font-normal">Date</th>
             <th class="px-4 py-3 text-left font-normal">Time</th>
           </tr>
@@ -75,6 +76,9 @@
                 </td>
                 <td class="px-4 py-3">
                   <div hlmSkeleton class="h-4 w-24 rounded"></div>
+                </td>
+                <td class="px-4 py-3">
+                  <div hlmSkeleton class="h-6 w-24 rounded-full"></div>
                 </td>
                 <td class="px-4 py-3">
                   <div hlmSkeleton class="h-4 w-40 rounded"></div>
@@ -119,6 +123,15 @@
               <td class="px-4 py-3 whitespace-nowrap">
                 {{ delivery.receipt_number }}
               </td>
+              <td class="px-4 py-3">
+                <span [class]="statusBadge(delivery.status)">
+                  <ng-icon
+                    [name]="statusMeta(delivery.status).icon"
+                    size="0.875rem"
+                  />
+                  {{ delivery.status }}
+                </span>
+              </td>
               <td class="px-4 py-3 whitespace-nowrap">
                 {{ delivery.date | date: 'MMM d, y (EEEE)' }}
               </td>
@@ -126,7 +139,7 @@
             </tr>
           } @empty {
             <tr>
-              <td class="text-muted-foreground px-4 py-6 text-center" colspan="8">
+              <td class="text-muted-foreground px-4 py-6 text-center" colspan="9">
                 @if (store.error()) {
                   {{ store.error() }}
                 } @else {

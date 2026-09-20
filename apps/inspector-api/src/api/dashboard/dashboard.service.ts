@@ -6,7 +6,7 @@ import {
   type DashboardRange,
   type DashboardRecentDelivery,
   type DashboardSummary,
-  type DeliveryStatus,
+  type RecentDeliveryStatus,
 } from '@tax-inspection/shared';
 import { getDb } from '../../config/database';
 
@@ -219,7 +219,7 @@ export const dashboardService = {
       .sort((a, b) => ms(b.created_at) - ms(a.created_at))
       .slice(0, 6);
     const recentIds = recentDocs.map((d) => d._id);
-    const statusByDelivery = new Map<string, DeliveryStatus>();
+    const statusByDelivery = new Map<string, RecentDeliveryStatus>();
     if (recentIds.length) {
       const relInspections = await inspections()
         .find({ delivery_id: { $in: recentIds } })

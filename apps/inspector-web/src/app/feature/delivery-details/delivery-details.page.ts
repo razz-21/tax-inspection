@@ -8,12 +8,14 @@ import {
 } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Dispatcher } from '@ngrx/signals/events';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowLeft,
   lucideCalculator,
+  lucideCheck,
+  lucideChevronDown,
   lucideCreditCard,
   lucideHouse,
   lucideLayers,
@@ -30,16 +32,23 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import {
   type Delivery,
+  type DeliveryStatus,
   type Payment,
   type PaymentStatus,
   type PostPayment,
   type TaxAssessment,
 } from '@tax-inspection/shared';
 import { DeliveriesService } from '../../service/deliveries.service';
+import {
+  DELIVERY_STATUS_ICONS,
+  DELIVERY_STATUS_META,
+  DELIVERY_STATUS_OPTIONS,
+} from '../../util/delivery-status';
 import { PaymentsService } from '../../service/payments.service';
 import { TaxAssessmentsService } from '../../service/tax-assessments.service';
 import { DeliveryInspectionsStore } from '../../store/delivery-inspections/delivery-inspections.store';
 import { deliveryInspectionsPageEvents } from '../../store/delivery-inspections/delivery-inspections.events';
+import { deliveriesApiEvents } from '../../store/deliveries/deliveries.events';
 import { ConfirmDialog } from './confirm-dialog/confirm-dialog';
 import {
   PaymentDialog,
@@ -71,6 +80,9 @@ import {
       lucidePencil,
       lucidePlus,
       lucideTrash2,
+      lucideChevronDown,
+      lucideCheck,
+      ...DELIVERY_STATUS_ICONS,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,6 +90,7 @@ import {
 })
 export class DeliveryDetailsPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly service = inject(DeliveriesService);
   private readonly taxService = inject(TaxAssessmentsService);
   private readonly paymentsService = inject(PaymentsService);
@@ -90,6 +103,20 @@ export class DeliveryDetailsPage {
   protected readonly delivery = signal<Delivery | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
+
+  // --- Delete delivery ---
+  protected readonly confirmDeleteDelivery = signal(false);
+  protected readonly deletingDelivery = signal(false);
+
+  // --- Status ---
+  protected readonly statusOptions = DELIVERY_STATUS_OPTIONS;
+  protected readonly statusMenuOpen = signal(false);
+  protected readonly updatingStatus = signal(false);
+  /** Presentation (icon + badge) for the delivery's current status. */
+  protected readonly statusMeta = computed(() => {
+    const status = this.delivery()?.status ?? 'In Review';
+    return DELIVERY_STATUS_META[status];
+  });
 
   protected readonly inspectionsCount = computed(
     () => this.inspectionsStore.entities().length,
@@ -121,6 +148,56 @@ export class DeliveryDetailsPage {
 
   constructor() {
     this.load();
+  }
+
+  protected toggleStatusMenu(): void {
+    this.statusMenuOpen.update((open) => !open);
+  }
+
+  /** Delete this delivery, then return to the list. */
+  protected async deleteDelivery(): Promise<void> {
+    const current = this.delivery();
+    if (!current) return;
+
+    this.deletingDelivery.set(true);
+    try {
+      await firstValueFrom(this.service.remove(current.id));
+      // Drop it from the cached list so it disappears immediately.
+      this.dispatcher.dispatch(deliveriesApiEvents.removed(current.id));
+      this.confirmDeleteDelivery.set(false);
+      toast.success('Delivery deleted.');
+      await this.router.navigateByUrl('/main/deliveries');
+    } catch (err) {
+      const message =
+        (err as HttpErrorResponse)?.error?.error ?? 'Failed to delete delivery.';
+      toast.error(message);
+    } finally {
+      this.deletingDelivery.set(false);
+    }
+  }
+
+  /** Update the delivery's workflow status via PATCH and reflect it locally. */
+  protected async updateStatus(status: DeliveryStatus): Promise<void> {
+    this.statusMenuOpen.set(false);
+    const current = this.delivery();
+    if (!current || current.status === status) return;
+
+    this.updatingStatus.set(true);
+    try {
+      const updated = await firstValueFrom(
+        this.service.update(current.id, { status }),
+      );
+      this.delivery.set(updated);
+      // Keep the admin deliveries list cache in sync.
+      this.dispatcher.dispatch(deliveriesApiEvents.updated(updated));
+      toast.success(`Status updated to ${status}.`);
+    } catch (err) {
+      const message =
+        (err as HttpErrorResponse)?.error?.error ?? 'Failed to update status.';
+      toast.error(message);
+    } finally {
+      this.updatingStatus.set(false);
+    }
   }
 
   protected openPayment(): void {
@@ -226,7 +303,7 @@ export class DeliveryDetailsPage {
         next: (delivery) => {
           this.delivery.set(delivery);
           this.loading.set(false);
-          // Viewing the delivery clears its "new" flag.
+          // Opening a brand-new delivery marks it as seen (is_new -> false).
           if (delivery.is_new) {
             this.markSeen(delivery.id);
           }
@@ -259,14 +336,20 @@ export class DeliveryDetailsPage {
       });
   }
 
-  /** Clear the delivery's `is_new` flag server-side once it's been viewed. */
+  /**
+   * Clear the `is_new` flag the first time a delivery is opened. Only touches
+   * `is_new` — nothing else about the delivery changes.
+   */
   private markSeen(id: string): void {
     this.service
       .update(id, { is_new: false })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () =>
-          this.delivery.update((d) => (d ? { ...d, is_new: false } : d)),
+        next: (updated) => {
+          this.delivery.set(updated);
+          // Clear the "New" badge in the cached list too.
+          this.dispatcher.dispatch(deliveriesApiEvents.updated(updated));
+        },
         error: () => {
           /* non-critical — leave the flag as-is on failure */
         },

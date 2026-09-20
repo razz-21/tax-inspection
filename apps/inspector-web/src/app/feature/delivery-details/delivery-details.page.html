@@ -14,22 +14,86 @@
 } @else if (delivery(); as d) {
   <!-- Header -->
   <header class="sticky top-0 z-10 border-b bg-background px-6 py-4">
-    <div class="flex items-center gap-3">
-      <a
-        routerLink="/main/deliveries"
-        class="-ml-1 flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
-        aria-label="Back"
-      >
-        <ng-icon name="lucideArrowLeft" size="1.25rem" />
-      </a>
-      <h1 class="text-2xl font-bold tracking-tight">Delivery details</h1>
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <div class="flex items-center gap-3">
+          <a
+            routerLink="/main/deliveries"
+            class="-ml-1 flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
+            aria-label="Back"
+          >
+            <ng-icon name="lucideArrowLeft" size="1.25rem" />
+          </a>
+          <h1 class="text-2xl font-bold tracking-tight">Delivery details</h1>
+        </div>
+        <p class="mt-1 pl-9 text-sm text-muted-foreground">
+          Receipt
+          <span class="font-semibold text-foreground">{{ d.receipt_number }}</span>
+          <span class="mx-2 text-border">|</span>
+          {{ d.date | date: 'MMM d, y' }} · {{ d.time }}
+        </p>
+      </div>
+
+      <!-- Actions: delete + status -->
+      <div class="flex shrink-0 items-center gap-2">
+        <button
+          hlmBtn
+          variant="outline"
+          type="button"
+          class="text-destructive hover:text-destructive"
+          [disabled]="deletingDelivery()"
+          (click)="confirmDeleteDelivery.set(true)"
+        >
+          <ng-icon name="lucideTrash2" size="1rem" class="mr-1.5" />
+          Delete
+        </button>
+
+        <!-- Status: button + dropdown to change it -->
+        <div class="relative">
+          <button
+            hlmBtn
+            variant="outline"
+            type="button"
+            [disabled]="updatingStatus()"
+            (click)="toggleStatusMenu()"
+          >
+            <ng-icon [name]="statusMeta().icon" size="1rem" class="mr-1.5" />
+            {{ statusMeta().label }}
+            <ng-icon name="lucideChevronDown" size="1rem" class="ml-1.5 opacity-70" />
+          </button>
+
+          @if (statusMenuOpen()) {
+          <!-- Click-away backdrop -->
+          <button
+            type="button"
+            class="fixed inset-0 z-40 cursor-default"
+            aria-label="Close status menu"
+            (click)="statusMenuOpen.set(false)"
+          ></button>
+
+          <div
+            class="absolute right-0 z-50 mt-1 w-52 overflow-hidden rounded-lg border bg-popover p-1 text-popover-foreground shadow-md"
+            role="menu"
+          >
+            @for (option of statusOptions; track option.label) {
+              <button
+                type="button"
+                role="menuitem"
+                class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm transition hover:bg-accent"
+                (click)="updateStatus(option.label)"
+              >
+                <ng-icon [name]="option.icon" size="1rem" />
+                <span class="flex-1">{{ option.label }}</span>
+                @if (statusMeta().label === option.label) {
+                  <ng-icon name="lucideCheck" size="1rem" class="text-primary" />
+                }
+              </button>
+            }
+          </div>
+        }
+        </div>
+      </div>
     </div>
-    <p class="mt-1 pl-9 text-sm text-muted-foreground">
-      Receipt
-      <span class="font-semibold text-foreground">{{ d.receipt_number }}</span>
-      <span class="mx-2 text-border">|</span>
-      {{ d.date | date: 'MMM d, y' }} · {{ d.time }}
-    </p>
   </header>
 
   <div class="min-h-full p-6">
@@ -505,6 +569,18 @@
     [saving]="savingPayment()"
     (save)="onPaymentSave($event)"
     (closed)="paymentOpen.set(false)"
+  />
+
+  <!-- Delete delivery confirmation -->
+  <app-confirm-dialog
+    [open]="confirmDeleteDelivery()"
+    title="Delete delivery?"
+    description="Are you sure you want to delete this delivery? Its inspections, tax assessment and payments will also be deleted. This action cannot be undone."
+    confirmLabel="Delete"
+    pendingLabel="Deleting…"
+    [pending]="deletingDelivery()"
+    (confirmed)="deleteDelivery()"
+    (cancelled)="confirmDeleteDelivery.set(false)"
   />
 
   <!-- Delete payment confirmation -->

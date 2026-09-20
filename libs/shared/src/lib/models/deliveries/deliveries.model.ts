@@ -18,6 +18,11 @@ export const MATERIAL_UNITS = ['Cubic Meter - m³'] as const;
 export const materialUnitSchema = z.enum(MATERIAL_UNITS);
 export type MaterialUnit = z.infer<typeof materialUnitSchema>;
 
+/** Workflow status of a delivery record. */
+export const DELIVERY_STATUSES = ['In Review', 'Closed', 'Completed'] as const;
+export const deliveryStatusSchema = z.enum(DELIVERY_STATUSES);
+export type DeliveryStatus = z.infer<typeof deliveryStatusSchema>;
+
 /** Hauler moving the load. */
 export const haulerSchema = z.object({
   name: z.string().min(1),
@@ -63,6 +68,8 @@ export const deliverySchema = z.object({
   creator: deliveryCreatorSchema.nullable().default(null),
   /** True for deliveries newly reported by a field officer. */
   is_new: z.boolean().default(true),
+  /** Back-office workflow status. New deliveries start "In Review". */
+  status: deliveryStatusSchema.default('In Review'),
   haulers: haulerSchema,
   truck: truckSchema,
   materials: materialsSchema,

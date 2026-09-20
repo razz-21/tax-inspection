@@ -2,11 +2,14 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideBoxes,
+  lucideCalendar,
   lucideChevronRight,
   lucideCloudOff,
   lucideMapPin,
   lucidePackage,
   lucidePlus,
+  lucideTruck,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
@@ -27,10 +30,13 @@ import { fieldOfficerDeliveriesPageEvents } from '../../../store/field-officer-d
   providers: [
     provideIcons({
       lucidePackage,
-      lucideMapPin,
       lucidePlus,
       lucideChevronRight,
       lucideCloudOff,
+      lucideMapPin,
+      lucideTruck,
+      lucideBoxes,
+      lucideCalendar,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -91,39 +97,56 @@ import { fieldOfficerDeliveriesPageEvents } from '../../../store/field-officer-d
           <li>
             <a
               [routerLink]="['/field-officer/deliveries', delivery.id]"
-              class="flex items-center gap-3 px-4 py-3 transition hover:bg-accent"
+              class="flex items-start gap-3 px-4 py-3.5 transition hover:bg-accent"
             >
               <span
-                class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
+                class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
               >
-                <ng-icon name="lucidePackage" size="1.25rem" />
+                <ng-icon name="lucidePackage" size="1.2rem" />
               </span>
 
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center justify-between gap-2">
-                  <p class="truncate font-medium">{{ delivery.haulers.name }}</p>
+              <div class="min-w-0 flex-1 space-y-2">
+                <!-- Source of materials + material type -->
+                <div class="flex items-center gap-2">
+                  <p class="min-w-0 flex-1 truncate text-lg font-semibold">
+                    {{ delivery.materials.source_of_material }}
+                  </p>
                   <span
-                    class="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                    class="shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-sm font-medium capitalize text-emerald-700"
                   >
                     {{ delivery.materials.material_type }}
                   </span>
                 </div>
-                <p
-                  class="mt-0.5 flex items-center gap-1 truncate text-sm text-muted-foreground"
+
+                <!-- Place of delivery -->
+                <p class="flex items-center gap-1.5 text-base text-muted-foreground">
+                  <ng-icon name="lucideMapPin" size="1.05rem" class="shrink-0" />
+                  <span class="truncate">{{ delivery.place_of_deliveries }}</span>
+                </p>
+
+                <!-- Truck · Quantity · Date & Time -->
+                <div
+                  class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground"
                 >
-                  <ng-icon name="lucideMapPin" size="0.875rem" />
-                  {{ delivery.place_of_deliveries }}
-                </p>
-                <p class="mt-0.5 truncate text-xs text-muted-foreground">
-                  {{ delivery.date }} · {{ delivery.time }} · Qty
-                  {{ delivery.quantity }}
-                </p>
+                  <span class="inline-flex items-center gap-1.5">
+                    <ng-icon name="lucideTruck" size="1.05rem" />
+                    <span class="capitalize">{{ delivery.truck.truck_type }}</span>
+                  </span>
+                  <span class="inline-flex items-center gap-1.5">
+                    <ng-icon name="lucideBoxes" size="1.05rem" />
+                    Qty {{ delivery.quantity }}
+                  </span>
+                  <span class="inline-flex items-center gap-1.5">
+                    <ng-icon name="lucideCalendar" size="1.05rem" />
+                    {{ delivery.date }} · {{ delivery.time }}
+                  </span>
+                </div>
               </div>
 
               <ng-icon
                 name="lucideChevronRight"
                 size="1.125rem"
-                class="shrink-0 text-muted-foreground"
+                class="mt-1 shrink-0 self-center text-muted-foreground"
               />
             </a>
           </li>

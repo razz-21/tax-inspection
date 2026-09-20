@@ -5,6 +5,7 @@ import {
   nowIso,
   type Delivery,
   type DeliveryCreator,
+  type DeliveryStatus,
   type GetDeliveries,
   type GetDeliveriesResponse,
   type Hauler,
@@ -20,6 +21,7 @@ interface DeliveryDoc {
   _id: string;
   created_by: string;
   is_new?: boolean;
+  status?: DeliveryStatus;
   haulers: Hauler;
   truck: Truck;
   materials: Materials;
@@ -76,6 +78,8 @@ function toDomain(
     created_by: doc.created_by,
     creator,
     is_new: doc.is_new ?? false,
+    // Older records created before the status field default to "In Review".
+    status: doc.status ?? 'In Review',
     haulers: doc.haulers,
     truck: doc.truck,
     materials: doc.materials,
@@ -145,6 +149,8 @@ export const deliveriesService = {
       created_by: createdBy,
       // Field-officer reports start flagged as new.
       is_new: true,
+      // New deliveries begin their back-office workflow in review.
+      status: 'In Review',
       haulers: input.haulers,
       truck: input.truck,
       materials: input.materials,
@@ -182,6 +188,16 @@ export const deliveriesService = {
 
   async remove(id: string): Promise<boolean> {
     const result = await collection().deleteOne({ _id: id });
-    return result.deletedCount === 1;
+    if (result.deletedCount !== 1) return false;
+
+    // Cascade: remove every record that belongs to this delivery so no
+    // inspections, assessments or payments are left orphaned.
+    const db = getDb();
+    await Promise.all([
+      db.collection('delivery_inspections').deleteMany({ delivery_id: id }),
+      db.collection('tax_assessments').deleteMany({ delivery_id: id }),
+      db.collection('payments').deleteMany({ delivery_id: id }),
+    ]);
+    return true;
   },
 };

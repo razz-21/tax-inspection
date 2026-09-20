@@ -11,7 +11,8 @@
     "build:web": "nx build inspector-web",
     "build:api": "nx build inspector-api",
     "build:api:vercel": "esbuild apps/inspector-api/src/app.ts --bundle --platform=node --format=cjs --packages=external --alias:@tax-inspection/shared=./libs/shared/src/index.ts --outfile=dist/inspector-api-vercel/app.cjs",
-    "vercel-build": "nx build inspector-web --configuration=production && npm run build:api:vercel"
+    "vercel-build": "nx build inspector-web --configuration=production && npm run build:api:vercel",
+    "migrate:delivery-status": "esbuild apps/inspector-api/src/scripts/backfill-delivery-status.ts --bundle --platform=node --format=cjs --packages=external --outfile=tmp/backfill-delivery-status.cjs && node tmp/backfill-delivery-status.cjs"
   },
   "private": true,
   "devDependencies": {

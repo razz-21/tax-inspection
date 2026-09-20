@@ -25,9 +25,18 @@ import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
-import type { MaterialType, TruckType } from '@tax-inspection/shared';
+import type {
+  DeliveryStatus,
+  MaterialType,
+  TruckType,
+} from '@tax-inspection/shared';
 import { DeliveriesStore } from '../../store/deliveries/deliveries.store';
 import { deliveriesPageEvents } from '../../store/deliveries/deliveries.events';
+import {
+  DELIVERY_STATUS_ICONS,
+  DELIVERY_STATUS_META,
+  type DeliveryStatusMeta,
+} from '../../util/delivery-status';
 
 @Component({
   selector: 'app-deliveries-page',
@@ -48,6 +57,7 @@ import { deliveriesPageEvents } from '../../store/deliveries/deliveries.events';
       lucidePickaxe,
       lucideGem,
       lucideBoxes,
+      ...DELIVERY_STATUS_ICONS,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -170,6 +180,15 @@ export class DeliveriesPage implements OnInit {
 
   protected materialIcon(type: MaterialType): string {
     return this.materialIcons[type] ?? 'lucideBoxes';
+  }
+
+  /** Icon + badge classes for a delivery status chip. */
+  protected statusMeta(status: DeliveryStatus): DeliveryStatusMeta {
+    return DELIVERY_STATUS_META[status] ?? DELIVERY_STATUS_META['In Review'];
+  }
+
+  protected statusBadge(status: DeliveryStatus): string {
+    return `${this.badgeBase} gap-1 ${this.statusMeta(status).badge}`;
   }
 
   /** Turns a role value (e.g. 'field_officer') into a display label. */

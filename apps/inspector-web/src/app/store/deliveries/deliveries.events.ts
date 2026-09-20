@@ -1,6 +1,7 @@
 import { type } from '@ngrx/signals';
 import { eventGroup } from '@ngrx/signals/events';
 import type {
+  Delivery,
   GetDeliveries,
   GetDeliveriesResponse,
 } from '@tax-inspection/shared';
@@ -21,5 +22,9 @@ export const deliveriesApiEvents = eventGroup({
   events: {
     loadedSuccess: type<GetDeliveriesResponse>(),
     loadedFailure: type<string>(),
+    /** A delivery was changed elsewhere (e.g. status) — refresh it in the list. */
+    updated: type<Delivery>(),
+    /** A delivery was deleted elsewhere — drop it from the list. */
+    removed: type<string>(),
   },
 });

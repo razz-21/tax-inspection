@@ -4,7 +4,9 @@ import { filter, switchMap } from 'rxjs';
 import { signalStore, withComputed, withHooks, withState } from '@ngrx/signals';
 import {
   removeAllEntities,
+  removeEntity,
   setAllEntities,
+  upsertEntity,
   withEntities,
 } from '@ngrx/signals/entities';
 import { Dispatcher, Events, on, withReducer } from '@ngrx/signals/events';
@@ -74,6 +76,10 @@ export const DeliveriesStore = signalStore(
       loading: false,
       error: payload,
     })),
+    // Reflect an update made elsewhere (status change, mark-seen) in the cache.
+    on(deliveriesApiEvents.updated, ({ payload }) => upsertEntity(payload)),
+    // Drop a delivery deleted elsewhere from the cached list.
+    on(deliveriesApiEvents.removed, ({ payload }) => removeEntity(payload)),
     // Drop cached deliveries when the user logs out.
     on(authEvents.loggedOut, () => [removeAllEntities(), initialState]),
   ),

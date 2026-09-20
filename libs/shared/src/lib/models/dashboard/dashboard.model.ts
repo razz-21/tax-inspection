@@ -29,7 +29,7 @@ export const getDashboardSchema = z.object({
 export type GetDashboard = z.infer<typeof getDashboardSchema>;
 
 /** Outcome of a delivery's inspection (or none yet). */
-export type DeliveryStatus = 'passed' | 'flagged' | 'pending';
+export type RecentDeliveryStatus = 'passed' | 'flagged' | 'pending';
 
 export interface DashboardPerDay {
   /** ISO date (start of the bucket). */
@@ -54,7 +54,7 @@ export interface DashboardRecentDelivery {
   truck: string;
   material: string;
   quantity: number;
-  status: DeliveryStatus;
+  status: RecentDeliveryStatus;
 }
 
 export interface DashboardInspectionActivity {

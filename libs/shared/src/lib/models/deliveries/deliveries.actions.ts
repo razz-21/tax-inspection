@@ -21,6 +21,8 @@ export const postDeliverySchema = deliverySchema.omit({
   created_by: true,
   creator: true,
   is_new: true,
+  // Status is assigned server-side ("In Review") on creation.
+  status: true,
   createdAt: true,
   updatedAt: true,
 });
