@@ -51,7 +51,6 @@ export const deliveryDetailsSchema = schema<DeliveryDetailsModel>((path) => {
   selector: 'app-delivery-details-form',
   imports: [
     FormField,
-    NgIcon,
     SectionCard,
     HlmDatePickerImports,
     HlmInputImports,
