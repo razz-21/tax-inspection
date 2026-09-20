@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Tax Inspection">
+  <rect width="512" height="512" rx="104" fill="#1f8a4c"/>
+  <!-- clipboard body -->
+  <rect x="146" y="150" width="220" height="252" rx="24" fill="#ffffff"/>
+  <!-- clip -->
+  <rect x="214" y="120" width="84" height="52" rx="16" fill="#166a3a"/>
+  <!-- check mark -->
+  <path d="M196 276 l40 40 l84 -92" fill="none" stroke="#1f8a4c" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

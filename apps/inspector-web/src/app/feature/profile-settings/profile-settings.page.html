@@ -355,6 +355,61 @@
           </div>
         </form>
       </div>
+
+      <!-- Download application (PWA) -->
+      <div class="rounded-xl border bg-card">
+        <div class="flex items-center gap-3 border-b p-5">
+          <span class="bg-muted flex size-9 items-center justify-center rounded-lg">
+            <ng-icon name="lucideMonitorDown" size="1.1rem" />
+          </span>
+          <div>
+            <h3 class="font-semibold">Download the application</h3>
+            <p class="text-muted-foreground text-xs">
+              Install Tax Inspection on this device to use it in desktop mode
+            </p>
+          </div>
+        </div>
+
+        <div class="p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="max-w-md">
+              <p class="text-muted-foreground text-sm">
+                Get an app icon on your desktop or home screen, a full-screen
+                window without browser tabs, and faster launches. Works offline
+                once installed.
+              </p>
+            </div>
+
+            <div class="w-full sm:w-auto">
+              @if (isInstalled()) {
+                <span
+                  class="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300"
+                >
+                  <ng-icon name="lucideCheck" size="1rem" />
+                  Application installed
+                </span>
+              } @else {
+                <button
+                  hlmBtn
+                  type="button"
+                  class="w-full gap-2 sm:w-auto"
+                  (click)="installApp()"
+                >
+                  <ng-icon name="lucideDownload" size="1rem" />
+                  Download application
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (!isInstalled() && !canInstall()) {
+            <p class="text-muted-foreground mt-3 text-xs">
+              If nothing happens, your browser may require installing from its
+              own menu (for example, Safari: Share → Add to Home Screen).
+            </p>
+          }
+        </div>
+      </div>
     </div>
   </div>
 </div>

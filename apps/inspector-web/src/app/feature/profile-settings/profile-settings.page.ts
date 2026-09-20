@@ -23,10 +23,12 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideBanknote,
   lucideCheck,
+  lucideDownload,
   lucideEye,
   lucideEyeOff,
   lucideLock,
   lucideMonitor,
+  lucideMonitorDown,
   lucideMoon,
   lucidePalette,
   lucideSun,
@@ -43,6 +45,7 @@ import { AuthService } from '../../service/auth.service';
 import { UsersService } from '../../service/users.service';
 import { SettingsService } from '../../service/settings.service';
 import { ThemeService, type Theme } from '../../service/theme.service';
+import { PwaInstallService } from '../../service/pwa-install.service';
 import { MeStore } from '../../store/me/me.store';
 
 interface AccountModel {
@@ -87,8 +90,10 @@ const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
       lucideCheck,
       lucidePalette,
       lucideMonitor,
+      lucideMonitorDown,
       lucideMoon,
       lucideSun,
+      lucideDownload,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -100,10 +105,15 @@ export class ProfileSettingsPage implements OnInit {
   private readonly users = inject(UsersService);
   private readonly settings = inject(SettingsService);
   private readonly themeService = inject(ThemeService);
+  private readonly pwa = inject(PwaInstallService);
   protected readonly me = inject(MeStore);
 
   /** Current appearance preference (auto/dark/light). */
   protected readonly theme = this.themeService.theme;
+
+  // --- Install as app (PWA) ---
+  protected readonly canInstall = this.pwa.canInstall;
+  protected readonly isInstalled = this.pwa.isInstalled;
 
   protected readonly roleLabel = computed(
     () => ROLE_LABELS[this.me.role() ?? 'field_officer'],
@@ -274,6 +284,19 @@ export class ProfileSettingsPage implements OnInit {
   // --- Appearance ---
   protected setTheme(theme: string): void {
     this.themeService.set(theme as Theme);
+  }
+
+  // --- Install as app ---
+  protected async installApp(): Promise<void> {
+    const outcome = await this.pwa.promptInstall();
+    if (outcome === 'accepted') {
+      toast.success('Installing the app…');
+    } else if (outcome === 'unavailable') {
+      // iOS Safari / unsupported browsers: guide the manual flow instead.
+      toast.info(
+        'To install, use your browser menu and choose "Install app" or "Add to Home Screen".',
+      );
+    }
   }
 
   // --- Profile card actions ---
